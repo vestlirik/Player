@@ -165,9 +165,6 @@ namespace vkAudio
         //Duration of current item
         public int Duration(string path)
         {
-                //TagLib.File f = TagLib.File.Create(path);
-                //return (int)f.Properties.Duration.TotalSeconds;
-
                 // length in bytes 
                 long len = Bass.BASS_ChannelGetLength(stream);
                 // the time length 
@@ -179,9 +176,6 @@ namespace vkAudio
         ////HUman readable duration string
         public string DurationString(string path)
         {
-                //TagLib.File f = TagLib.File.Create(path);
-                //return f.Properties.Duration.Minutes + ":" + String.Format("{0:00}", f.Properties.Duration.Seconds);
-
             // length in bytes 
             long len = Bass.BASS_ChannelGetLength(stream);
             // the time length 
