@@ -7,6 +7,7 @@ using System.Linq;
 using System.Media;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -193,26 +194,24 @@ namespace vkAudio
             richTextBox1.Text = ((AudioVK)currSong).GetLirycs(auth.Token);
 
             label2.Text = currSong.Name;
-
+            player.Play();
             trackBar1.Minimum = 0;
             if (plstType.Name == "PlayListLocal")
             {
                trackBar1.Maximum = player.Duration(currSong.GetLocation);
                label4.Text = player.DurationString(currSong.GetLocation);
-                //label7.Text = player.Bitrate + " КБ/с";
-                //label8.Text = player.Fraquency + " KHz";
             }
             else if (plstType.Name == "PlayListVk")
             {
                 trackBar1.Maximum = int.Parse(((AudioVK)currSong).duration);
                 label4.Text = ((AudioVK)currSong).DurationString;
-                //label7.Text = player.Bitrate + " КБ/с";
-                //label8.Text = player.Fraquency + " KHz";
             }
+            label7.Text = player.Bitrate(currSong.GetLocation) + " КБ/с";
+            label8.Text = player.Fraquency(currSong.GetLocation) + " KHz";
 
             timer1.Enabled = true;
 
-            player.Play();
+            
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -271,6 +270,11 @@ namespace vkAudio
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            if (trackBar1.Value == trackBar1.Maximum)
+            {
+                Thread.Sleep(500);
+                NextTrack();
+            }
             try
             {
                 trackBar1.Value = (int)player.CurruntPosition;

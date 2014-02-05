@@ -233,20 +233,17 @@ namespace vkAudio
                 Bass.BASS_SetVolume((float)value / 100);
             }
         }
-        /*
-        public double Fraquency
+
+        public double Fraquency(string str)
         {
-            get
-            {
-                return (double)audioFileReader.Mp3WaveFormat.SampleRate/1000;
-            }
+            TagLib.File file = TagLib.File.Create(str);
+            return file.Properties.AudioSampleRate;
         }
-        public int Bitrate
+        
+        public int Bitrate(string str)
         {
-            get
-            {
-                return (int)Math.Round(((double)audioFileReader.Mp3WaveFormat.AverageBytesPerSecond * 8) / 1000);
-            }
-        }*/
+            TagLib.File file = TagLib.File.Create(str);
+            return file.Properties.AudioBitrate;
+        }
     }
 }
