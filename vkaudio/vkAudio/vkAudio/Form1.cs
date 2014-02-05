@@ -35,7 +35,7 @@ namespace vkAudio
             timer2.Stop();
 
             label7.Text = label8.Text = "";
-
+            trackBar2.Value = player.Volume;
             //Attach the event handler of WMPengine
             player.StatusChanged += new Player.OnStatusUpdate(engine_StatusChanged);
             
@@ -376,7 +376,7 @@ namespace vkAudio
 
         private void trackBar2_Scroll(object sender, EventArgs e)
         {
-            //player.Volume = trackBar2.Value;
+            player.Volume = trackBar2.Value;
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -403,6 +403,15 @@ namespace vkAudio
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void trackBar2_MouseDown(object sender, MouseEventArgs e)
+        {
+            double dblValue;
+            int z = 382;
+            dblValue = ((z - e.Y) / (double)(z)) * trackBar2.Maximum;
+            player.Volume = Convert.ToInt32(dblValue);
+            trackBar2.Value = player.Volume;
         }
     }
 }

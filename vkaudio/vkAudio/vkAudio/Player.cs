@@ -86,7 +86,9 @@ namespace vkAudio
 
                 stream = Bass.BASS_StreamCreateFile(url, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT);
 
-                //Bass.
+                // pre-buffer
+                Bass.BASS_ChannelUpdate(stream, 0);
+
 
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
@@ -104,6 +106,9 @@ namespace vkAudio
                 //fromNetwork = false;
 
                 stream = Bass.BASS_StreamCreateURL(url, 0, BASSFlag.BASS_SAMPLE_FLOAT,null,IntPtr.Zero);
+                
+                // pre-buffer
+                Bass.BASS_ChannelUpdate(stream, 0);
 
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
@@ -216,19 +221,19 @@ namespace vkAudio
             curStatus = status;
             StatusChanged(curStatus);
         }
-        /*
+        
         public int Volume
         {
             get
             {
-                return (int)(waveOutDevice.Volume * 100);
+                return (int)(Bass.BASS_GetVolume() * 100);
             }
             set
             {
-                waveOutDevice.Volume = (float)value / 100;
+                Bass.BASS_SetVolume((float)value / 100);
             }
         }
-
+        /*
         public double Fraquency
         {
             get

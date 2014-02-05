@@ -145,7 +145,9 @@
             // 
             this.trackBar1.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.trackBar1.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.trackBar1.LargeChange = 1;
             this.trackBar1.Location = new System.Drawing.Point(340, 110);
+            this.trackBar1.Margin = new System.Windows.Forms.Padding(0, 3, 0, 3);
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(403, 45);
             this.trackBar1.SmallChange = 3;
@@ -213,6 +215,7 @@
             // trackBar2
             // 
             this.trackBar2.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.trackBar2.LargeChange = 3;
             this.trackBar2.Location = new System.Drawing.Point(756, 39);
             this.trackBar2.Maximum = 100;
             this.trackBar2.Name = "trackBar2";
@@ -222,6 +225,7 @@
             this.trackBar2.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.trackBar2.Value = 100;
             this.trackBar2.Scroll += new System.EventHandler(this.trackBar2_Scroll);
+            this.trackBar2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.trackBar2_MouseDown);
             // 
             // button6
             // 
