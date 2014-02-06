@@ -36,9 +36,11 @@ namespace vkAudio
         private ThumbnailToolBarButton buttonPrevious;
         TaskbarManager tbManager = TaskbarManager.Instance;
 
+
         public Form1()
         {
             InitializeComponent();
+            this.Text = "Стоп";
             auth = new Auth();
             player = new Player();
             lastInput = DateTime.Now;
@@ -184,12 +186,10 @@ namespace vkAudio
             var z = player.GetPlayerstatus();
             if (player.GetPlayerstatus() == PLAYER_STATUS.PLAYER_STATUS_PAUSED)
             {
-                buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
                 player.Resume();
             }
             else if (player.GetPlayerstatus() == PLAYER_STATUS.PLAYER_STATUS_PLAYING)
             {
-                buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Pause;
                 player.Pause();
             }
             else
@@ -255,6 +255,8 @@ namespace vkAudio
             label8.Text = player.Fraquency(currSong.GetLocation) + " KHz";
 
             timer1.Enabled = true;
+
+            this.Text = label2.Text;
 
             notifyIcon1.Visible = true;
             var str=label2.Text.Length > 64 ? label2.Text.Substring(0, 64) : label2.Text;
@@ -405,6 +407,7 @@ namespace vkAudio
                 TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
                 buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
             }
+            this.Text = "Стоп";
         }
 
         private void OnStatusEnded()
@@ -419,6 +422,7 @@ namespace vkAudio
             tbManager.SetProgressState(TaskbarProgressBarState.Paused);
             timer1.Stop();
 
+            buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
         }
 
         private void OnStatusPlaying()
@@ -427,6 +431,7 @@ namespace vkAudio
             tbManager.SetProgressState(TaskbarProgressBarState.Normal);
             timer1.Start();
 
+            buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Pause;
         }
 
         private void OnStatusNotReady()
@@ -526,5 +531,91 @@ namespace vkAudio
                 }
             }
         }
+
+        private void notifyIcon1_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(label2.Text);
+        }
+
+        private void notifyIcon1_BalloonTipClicked(object sender, EventArgs e)
+        {
+            Clipboard.SetText(label2.Text);
+        }
+
+        private void textBox1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+                if(!e.Alt && !e.Control)
+                if ((e.KeyValue >= 48 && e.KeyValue<=57) || (e.KeyValue >= 65 && e.KeyValue<=90))
+            {
+                var searchText = textBox1.Text.Trim();
+                if (searchText == "")
+                {
+                    listBox1.SelectedIndex = playlist.SelTrack;
+                    return;
+                }
+                for (int i = 0; i < listBox1.Items.Count; i++)
+                {
+                    if (listBox1.Items[i].ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        listBox1.SelectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                if (textBox1.Text.Trim() != "" && listBox1.SelectedIndex != -1)
+                    listBox1_DoubleClick(new object(), new EventArgs());
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+            var searchText = textBox1.Text.Trim();
+            if (searchText != "" && listBox1.SelectedIndex != -1)
+            {
+                for (int i = listBox1.SelectedIndex + 1; i < listBox1.Items.Count; i++)
+                {
+                    if (listBox1.Items[i].ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        listBox1.SelectedIndex = i;
+                        break;
+                    }
+                    if (i == listBox1.Items.Count)
+                    {
+                        listBox1.SelectedIndex = playlist.SelTrack;
+                        return;
+                    }
+                }
+            }
+            textBox1.Focus();
+        }
+
+        private void label13_Click(object sender, EventArgs e)
+        {
+            var searchText = textBox1.Text.Trim();
+            if (searchText != "" && listBox1.SelectedIndex != -1)
+            {
+                for (int i = listBox1.SelectedIndex - 1; i > 0; i--)
+                {
+                    if (listBox1.Items[i].ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        listBox1.SelectedIndex = i;
+                        break;
+                    }
+                    if (i == 0)
+                    {
+                        listBox1.SelectedIndex = playlist.SelTrack;
+                        return;
+                    }
+                }
+            }
+            textBox1.Focus();
+        }
+
+
     }
 }
