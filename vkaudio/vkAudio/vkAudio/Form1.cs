@@ -12,6 +12,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 
+using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Taskbar;
+using Microsoft.WindowsAPICodePack.Shell;
+using System.IO;
+
 namespace vkAudio
 {
     public partial class Form1 : Form
@@ -25,6 +30,12 @@ namespace vkAudio
         //время последнего нажатия горячей кнопки
         DateTime lastInput;
 
+
+        private ThumbnailToolBarButton buttonPlayPause;
+        private ThumbnailToolBarButton buttonNext;
+        private ThumbnailToolBarButton buttonPrevious;
+        TaskbarManager tbManager = TaskbarManager.Instance;
+
         public Form1()
         {
             InitializeComponent();
@@ -36,11 +47,41 @@ namespace vkAudio
             timer2.Stop();
 
             label7.Text = label8.Text = "";
+            trackBar2.ValueChanged += trackBar2_ValueChanged;
             trackBar2.Value = player.Volume;
             //Attach the event handler of WMPengine
             player.StatusChanged += new Player.OnStatusUpdate(engine_StatusChanged);
-            
 
+            //tulbar
+            buttonPlayPause = new ThumbnailToolBarButton
+            (Properties.Resources.Hopstarter_Button_Button_Play, "Play");
+            buttonPlayPause.Enabled = true;
+            buttonPlayPause.Click +=
+                new EventHandler<ThumbnailButtonClickedEventArgs>(button3_Click);
+
+            buttonNext = new ThumbnailToolBarButton
+            (Properties.Resources.Hopstarter_Button_Button_Fast_Forward, "Next");
+            buttonNext.Enabled = true;
+            buttonNext.Click +=
+                 new EventHandler<ThumbnailButtonClickedEventArgs>(button4_Click);
+
+            buttonPrevious = new ThumbnailToolBarButton(Properties.Resources.Custom_Icon_Design_Pretty_Office_8_Fast_backward, "Previous");
+            buttonPrevious.Click +=
+              new EventHandler<ThumbnailButtonClickedEventArgs>(button2_Click);
+
+            TaskbarManager.Instance.ThumbnailToolBars.AddButtons
+               (this.Handle, buttonPrevious, buttonPlayPause, buttonNext);
+            TaskbarManager.Instance.TabbedThumbnail.SetThumbnailClip
+              (this.Handle, new Rectangle(albumart.Location, albumart.Size));
+
+
+            //notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            notifyIcon1.Icon = SystemIcons.Exclamation;
+        }
+
+        void trackBar2_ValueChanged(object sender, EventArgs e)
+        {
+            label10.Text = trackBar2.Value.ToString();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -73,11 +114,9 @@ namespace vkAudio
         private async void button1_Click(object sender, EventArgs e)
         {
             GetAuth();
-            //получаем список песен асинхронно
-            //await Task.Factory.StartNew(() => playlist.GetFromVK(auth.UserId.ToString(), auth.Token));
 
             playlist = new PlayListVk();
-            playlist.DownloadTracks(new string[] { auth.UserId,auth.Token });
+            await Task.Factory.StartNew(() =>playlist.DownloadTracks(new string[] { auth.UserId,auth.Token }));
 
             listBox1.Items.Clear();
             foreach (var elm in playlist.GetTrackList())
@@ -145,10 +184,12 @@ namespace vkAudio
             var z = player.GetPlayerstatus();
             if (player.GetPlayerstatus() == PLAYER_STATUS.PLAYER_STATUS_PAUSED)
             {
+                buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
                 player.Resume();
             }
             else if (player.GetPlayerstatus() == PLAYER_STATUS.PLAYER_STATUS_PLAYING)
             {
+                buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Pause;
                 player.Pause();
             }
             else
@@ -169,7 +210,6 @@ namespace vkAudio
                     }
             }
 
-            
         }
 
         private void PlayTrack()
@@ -193,8 +233,13 @@ namespace vkAudio
             if (plstType.Name == "PlayListVk")
             richTextBox1.Text = ((AudioVK)currSong).GetLirycs(auth.Token);
 
-            label2.Text = currSong.Name;
             player.Play();
+
+
+            label2.Text = player.GetName(currSong.GetLocation);
+            if (label2.Text.Trim() == "")
+                label2.Text = currSong.Name;
+
             trackBar1.Minimum = 0;
             if (plstType.Name == "PlayListLocal")
             {
@@ -211,8 +256,14 @@ namespace vkAudio
 
             timer1.Enabled = true;
 
-            
+            notifyIcon1.Visible = true;
+            var str=label2.Text.Length > 64 ? label2.Text.Substring(0, 64) : label2.Text;
+
+            notifyIcon1.ShowBalloonTip(500,"Натсупний трек",str,ToolTipIcon.Info);
+
+            SetTaskbarthumbnail();
         }
+
 
         private void button4_Click(object sender, EventArgs e)
         {
@@ -277,8 +328,14 @@ namespace vkAudio
             }
             try
             {
-                trackBar1.Value = (int)player.CurruntPosition;
-                label5.Text = player.CurruntPositionString;
+                if (trackBar1.Value <= trackBar1.Maximum)
+                {
+                    trackBar1.Value = (int)player.CurruntPosition;
+                    label5.Text = player.CurruntPositionString;
+                    tbManager.SetProgressValue(trackBar1.Value, trackBar1.Maximum);
+
+                }
+                
             }
             catch
             {
@@ -343,6 +400,11 @@ namespace vkAudio
             label5.Text = "";
             label7.Text = "";
             label8.Text = "";
+            if (TaskbarManager.IsPlatformSupported)
+            {
+                TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
+                buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
+            }
         }
 
         private void OnStatusEnded()
@@ -354,6 +416,7 @@ namespace vkAudio
         private void OnStatusPaused()
         {
             label6.Text = "Пауза";
+            tbManager.SetProgressState(TaskbarProgressBarState.Paused);
             timer1.Stop();
 
         }
@@ -361,7 +424,7 @@ namespace vkAudio
         private void OnStatusPlaying()
         {
             label6.Text = "Грає";
-            
+            tbManager.SetProgressState(TaskbarProgressBarState.Normal);
             timer1.Start();
 
         }
@@ -383,13 +446,13 @@ namespace vkAudio
             player.Volume = trackBar2.Value;
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        private async void button6_Click(object sender, EventArgs e)
         {
             var res=folderBrowserDialog1.ShowDialog();
             if(res==System.Windows.Forms.DialogResult.OK)
             {
                 playlist = new PlayListLocal();
-                playlist.DownloadTracks(new string[]{folderBrowserDialog1.SelectedPath});
+                await Task.Factory.StartNew(() =>playlist.DownloadTracks(new string[]{folderBrowserDialog1.SelectedPath}));
 
                 listBox1.Items.Clear();
                 foreach (var elm in playlist.GetTrackList())
@@ -416,6 +479,52 @@ namespace vkAudio
             dblValue = ((z - e.Y) / (double)(z)) * trackBar2.Maximum;
             player.Volume = Convert.ToInt32(dblValue);
             trackBar2.Value = player.Volume;
+        }
+
+        private void trackBar2_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!trackBar2.Focused)
+                trackBar2.Focus();
+        }
+
+        private void listBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!listBox1.Focused)
+                listBox1.Focus();
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+        }
+
+
+        private void SetTaskbarthumbnail()
+        {
+            TaskbarManager.Instance.TabbedThumbnail.SetThumbnailClip
+            (this.Handle, new Rectangle(albumart.Location.X + 4,
+            albumart.Location.Y, albumart.Size.Width - 1, albumart.Size.Height - 4));
+        }
+
+        private void SetAlbumArt()
+        {
+
+            if (listBox1.SelectedItem != null)
+            {
+                TagLib.File file = TagLib.File.Create(playlist.GetCurrentTrack().GetLocation);
+                if (file.Tag.Pictures.Length > 0)
+                {
+                    var bin = (byte[])(file.Tag.Pictures[0].Data.Data);
+                    albumart.Image =
+            Image.FromStream(new MemoryStream(bin)).GetThumbnailImage
+                    (100, 100, null, IntPtr.Zero);
+
+                }
+                else
+                {
+                    albumart.Image =  Properties.Resources.Image1;
+                }
+            }
         }
     }
 }

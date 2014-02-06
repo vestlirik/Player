@@ -29,8 +29,6 @@ namespace vkAudio
         //Main player(engine)
         int stream;
 
-        bool fromNetwork = false;
-
         //Delegate to let the clients know about Event change
         public delegate void OnStatusUpdate(PLAYER_STATUS status);
 
@@ -41,35 +39,11 @@ namespace vkAudio
         public Player()
         {
             //create engine
-            Bass.BASS_Free();
-
             Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
 
-            //default settings
+            //default status
             curStatus = PLAYER_STATUS.PLAYER_STATUS_NOT_READY;
         }
-
-        //void waveOutDevice_PlaybackStopped(object sender, StoppedEventArgs e)
-        //{
-        //    if (Repeat)
-        //    {
-        //        try
-        //        {
-        //            CurruntPosition = - (int)Duration - 1;
-        //        }
-        //        catch
-        //        {
-        //            CurruntPosition = -(int)Duration;
-        //        }
-        //        Pause();
-        //        Resume();
-        //    }
-        //    else
-        //    {
-        //        Stop();
-        //        UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_ENDED);
-        //    }
-        //}
 
         public bool Repeat = false;
 
@@ -236,14 +210,33 @@ namespace vkAudio
 
         public double Fraquency(string str)
         {
+            if (str.IndexOf("http") == 0)
+                return 0;
             TagLib.File file = TagLib.File.Create(str);
             return file.Properties.AudioSampleRate;
         }
         
         public int Bitrate(string str)
         {
+            if (str.IndexOf("http") == 0)
+                return 0;
             TagLib.File file = TagLib.File.Create(str);
             return file.Properties.AudioBitrate;
+        }
+
+        internal string GetName(string path)
+        {
+            try
+            {
+                TagLib.File file = TagLib.File.Create(path);
+                if (file.Tag.Artists[0].Trim() == "" || file.Tag.Title.Trim() == "")
+                    return "";
+                return file.Tag.Artists[0] + " - " + file.Tag.Title;
+            }
+            catch
+            {
+                return "";
+            }
         }
     }
 }
