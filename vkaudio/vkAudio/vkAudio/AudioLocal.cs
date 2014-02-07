@@ -11,6 +11,7 @@ namespace vkAudio
         public AudioLocal(string pth)
         {
             this.URL = pth;
+            //human view of name
             this.Name = pth.Substring(pth.LastIndexOf("\\") + 1, pth.LastIndexOf(".mp3") - pth.LastIndexOf("\\") - 1);
         }
 

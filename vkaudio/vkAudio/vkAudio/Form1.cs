@@ -30,6 +30,8 @@ namespace vkAudio
         //время последнего нажатия горячей кнопки
         DateTime lastInput;
 
+        List<int> cherga = new List<int>();
+
 
         private ThumbnailToolBarButton buttonPlayPause;
         private ThumbnailToolBarButton buttonNext;
@@ -43,6 +45,7 @@ namespace vkAudio
             this.Text = "Стоп";
             auth = new Auth();
             player = new Player();
+            this.Focus();
             lastInput = DateTime.Now;
 
             timer1.Stop();
@@ -77,8 +80,8 @@ namespace vkAudio
               (this.Handle, new Rectangle(albumart.Location, albumart.Size));
 
 
-            //notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
-            notifyIcon1.Icon = SystemIcons.Exclamation;
+            notifyIcon1.Visible = true;
+            notifyIcon1.Icon = SystemIcons.Hand;
         }
 
         void trackBar2_ValueChanged(object sender, EventArgs e)
@@ -88,7 +91,6 @@ namespace vkAudio
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
             #region Регистрация горячих клавиш
             MethodInvoker mi = new MethodInvoker(WaitKey);
             mi.BeginInvoke(null, null);
@@ -101,31 +103,37 @@ namespace vkAudio
             {
                 ////Авторизация в вк
                 auth.ShowDialog();
-
-                ////загрузка данных о профиле
-                XmlDocument x = new XmlDocument();
-                x.Load("https://api.vk.com/method/getProfiles.xml?uid=" + auth.UserId + "&access_token=" + auth.Token);
-                // Парсим
-                var el = x.GetElementsByTagName("user")[0];
+                try
+                {
+                    ////загрузка данных о профиле
+                    XmlDocument x = new XmlDocument();
+                    x.Load("https://api.vk.com/method/getProfiles.xml?uid=" + auth.UserId + "&access_token=" + auth.Token);
+                    // Парсим
+                    var el = x.GetElementsByTagName("user")[0];
+                }
+                catch
+                {
+                    MessageBox.Show("Неможливо з'єднатися з vk.com");
+                }
 
                 //label3.Text += el.ChildNodes[1].InnerText + " " + el.ChildNodes[2].InnerText;
-
             }
         }
 
         private async void button1_Click(object sender, EventArgs e)
         {
             GetAuth();
-
-            playlist = new PlayListVk();
-            await Task.Factory.StartNew(() =>playlist.DownloadTracks(new string[] { auth.UserId,auth.Token }));
-
-            listBox1.Items.Clear();
-            foreach (var elm in playlist.GetTrackList())
+            if (auth.IsAuth)
             {
-                listBox1.Items.Add(elm);
-            }
+                playlist = new PlayListVk();
+                await Task.Factory.StartNew(() =>playlist.DownloadTracks(new string[] { auth.UserId,auth.Token }));
 
+                listBox1.Items.Clear();
+                foreach (var elm in playlist.GetTrackList())
+                {
+                    listBox1.Items.Add(elm);
+                }
+            }
         }
 
 
@@ -137,7 +145,8 @@ namespace vkAudio
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
             playlist.SelTrack = listBox1.SelectedIndex;
-
+            if (checkBox2.Checked)
+                cherga.Add(playlist.SelTrack);
             PlayTrack();
         }
 
@@ -151,34 +160,65 @@ namespace vkAudio
             PlayPauseButton();
         }
 
+        int currInCherga=-1;
         private void PrevTrack()
         {
-            if (playlist.SelTrack == 0)
-                playlist.SelTrack = playlist.Count() - 1;
-            else
-                playlist.SelTrack--;
+            if (playlist != null && playlist.Count() > 0)
+            {
+                if (checkBox2.Checked)
+                {
+                    currInCherga = cherga.IndexOf(playlist.SelTrack);
+                    if (currInCherga > 0)
+                    {
+                        currInCherga--;
+                        playlist.SelTrack = cherga[currInCherga];
+                    }
+                    else
+                        return;
+                }
+                else
+                {
+                    if (playlist.SelTrack == 0)
+                        playlist.SelTrack = playlist.Count() - 1;
+                    else
+                        playlist.SelTrack--;
 
-            listBox1.SelectedIndex = playlist.SelTrack;
-
-            PlayTrack();
+                    listBox1.SelectedIndex = playlist.SelTrack;
+                }
+                PlayTrack();
+            }
         }
 
         private void NextTrack()
         {
-            if (checkBox2.Checked)
+            if (playlist != null && playlist.Count() > 0)
             {
-                playlist.SelTrack = (new Random()).Next(playlist.Count() - 1);
-            }
-            else
-            {
-                if (playlist.SelTrack == playlist.Count() - 1)
-                    playlist.SelTrack = 0;
+                if (checkBox2.Checked)
+                {
+                    if (currInCherga < cherga.Count - 1 && cherga.Count > 0 && currInCherga != -1)
+                    {
+                        currInCherga++;
+                        playlist.SelTrack = cherga[currInCherga];
+                    }
+                    else
+                    {
+                        playlist.SelTrack = (new Random()).Next(playlist.Count() - 1);
+                        cherga.Add(playlist.SelTrack);
+                        currInCherga = cherga.Count - 1;
+                    }
+                }
                 else
-                    playlist.SelTrack++;
-            }
-            listBox1.SelectedIndex = playlist.SelTrack;
+                {
+                    if (playlist.SelTrack == playlist.Count() - 1)
+                        playlist.SelTrack = 0;
+                    else
+                        playlist.SelTrack++;
+                }
+                listBox1.SelectedIndex = playlist.SelTrack;
 
-            PlayTrack();
+
+                PlayTrack();
+            }
         }
 
         private void PlayPauseButton()
@@ -194,7 +234,7 @@ namespace vkAudio
             }
             else
             {
-                if (playlist.Count()>0)
+                    if (playlist!=null && playlist.Count()>0)
                     {
                         if (playlist.SelTrack > -1)
                             PlayTrack();
@@ -258,12 +298,12 @@ namespace vkAudio
 
             this.Text = label2.Text;
 
-            notifyIcon1.Visible = true;
-            var str=label2.Text.Length > 64 ? label2.Text.Substring(0, 64) : label2.Text;
-
-            notifyIcon1.ShowBalloonTip(500,"Натсупний трек",str,ToolTipIcon.Info);
+            
+                var str = label2.Text.Length > 64 ? label2.Text.Substring(0, 64) : label2.Text;
+                notifyIcon1.ShowBalloonTip(500, "Наступний трек", str, ToolTipIcon.Info);
 
             SetTaskbarthumbnail();
+
         }
 
 
@@ -325,8 +365,13 @@ namespace vkAudio
         {
             if (trackBar1.Value == trackBar1.Maximum)
             {
-                Thread.Sleep(500);
-                NextTrack();
+                if (checkBox1.Checked)
+                    player.CurruntPosition = 0;
+                else
+                {
+                    Thread.Sleep(500);
+                    NextTrack();
+                }
             }
             try
             {
@@ -469,12 +514,13 @@ namespace vkAudio
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            player.Repeat = checkBox1.Checked;
+            
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
-
+            cherga.Clear();
+            currInCherga = -1;
         }
 
         private void trackBar2_MouseDown(object sender, MouseEventArgs e)
@@ -544,22 +590,29 @@ namespace vkAudio
 
         private void textBox1_KeyUp(object sender, KeyEventArgs e)
         {
+            if ((e.KeyValue < 48 && e.KeyValue > 57) || (e.KeyValue < 65 && e.KeyValue > 90))
+            {
+                e.Handled = true;
+                return;
+            }
             if (e.KeyCode != Keys.Enter)
                 if(!e.Alt && !e.Control)
-                if ((e.KeyValue >= 48 && e.KeyValue<=57) || (e.KeyValue >= 65 && e.KeyValue<=90))
             {
-                var searchText = textBox1.Text.Trim();
-                if (searchText == "")
+                if (playlist != null && playlist.Count() > 0)
                 {
-                    listBox1.SelectedIndex = playlist.SelTrack;
-                    return;
-                }
-                for (int i = 0; i < listBox1.Items.Count; i++)
-                {
-                    if (listBox1.Items[i].ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    var searchText = textBox1.Text.Trim();
+                    if (searchText == "")
                     {
-                        listBox1.SelectedIndex = i;
-                        break;
+                        listBox1.SelectedIndex = playlist.SelTrack;
+                        return;
+                    }
+                    for (int i = 0; i < listBox1.Items.Count; i++)
+                    {
+                        if (listBox1.Items[i].ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listBox1.SelectedIndex = i;
+                            break;
+                        }
                     }
                 }
             }
@@ -575,6 +628,7 @@ namespace vkAudio
         private void label12_Click(object sender, EventArgs e)
         {
             var searchText = textBox1.Text.Trim();
+            if (playlist != null && playlist.Count() > 0)
             if (searchText != "" && listBox1.SelectedIndex != -1)
             {
                 for (int i = listBox1.SelectedIndex + 1; i < listBox1.Items.Count; i++)
@@ -597,6 +651,7 @@ namespace vkAudio
         private void label13_Click(object sender, EventArgs e)
         {
             var searchText = textBox1.Text.Trim();
+            if (playlist != null && playlist.Count() > 0)
             if (searchText != "" && listBox1.SelectedIndex != -1)
             {
                 for (int i = listBox1.SelectedIndex - 1; i > 0; i--)
@@ -614,6 +669,16 @@ namespace vkAudio
                 }
             }
             textBox1.Focus();
+        }
+
+        private void Form1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            notifyIcon1.Visible = false;
         }
 
 

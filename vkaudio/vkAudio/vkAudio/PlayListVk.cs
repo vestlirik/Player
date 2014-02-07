@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace vkAudio
 {
-    public class PlayListVk:PlayList
+    public class PlayListVk : PlayList
     {
         protected new List<AudioVK> tracks;
 
@@ -16,20 +16,31 @@ namespace vkAudio
             this.tracks = new List<AudioVK>();
         }
 
+        //count of tracks
         public override int Count()
         {
-                return tracks.Count;
+            return tracks.Count;
         }
-        
+
+        //return current track
         public override Audio GetCurrentTrack()
         {
+            if (SelTrack >= 0)
             return tracks[SelTrack];
+            else
+                return null;
         }
+
+        //return current track
         public AudioVK GetCurrentTrackVK()
         {
+            if (SelTrack >= 0)
             return tracks[SelTrack];
+            else
+                return null;
         }
-        
+
+        //get tracks from vk user
         public override void DownloadTracks(string[] data)
         {
 
@@ -55,7 +66,7 @@ namespace vkAudio
 
         public override List<string> GetTrackList()
         {
-            return tracks.Select(x=>x.Name).ToList();
+            return tracks.Select(x => x.Name).ToList();
         }
     }
 }

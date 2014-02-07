@@ -10,14 +10,13 @@ namespace vkAudio
     {
         protected List<Audio> tracks;
 
+        //current selected index of track
         private int selTrack;
 
         public int SelTrack
         {
             get
             {
-                if (selTrack < 0 && Count() > 0)
-                    selTrack = 0;
                 return selTrack;
             }
             set
@@ -33,12 +32,16 @@ namespace vkAudio
             selTrack=-1;
         }
 
+        //count of tracks
         public abstract int Count();
 
+        //return current track
         public abstract Audio GetCurrentTrack();
 
+        //get tracks from address
         public abstract void DownloadTracks(string[] data);
 
+        //get list of track names, perhaps for listbox
         public abstract List<string> GetTrackList();
     }
 }

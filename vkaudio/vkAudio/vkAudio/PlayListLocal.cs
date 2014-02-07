@@ -16,20 +16,27 @@ namespace vkAudio
             tracks = new List<AudioLocal>();
         }
 
+        //count of tracks
         public override int Count()
         {
             return tracks.Count;
         }
 
+        //return current track
         public override Audio GetCurrentTrack()
         {
-            return tracks[SelTrack];
+            if (SelTrack >= 0)
+                return tracks[SelTrack];
+            else
+                return null;
         }
-        
+
+        //get tracks from path
         public override void DownloadTracks(string[] path)
         {
             var folder = path[0];
             tracks.Clear();
+            //list with track paths
             List<string> tmpList = new List<string>();
             GetFilesFromDirectory(folder, tmpList);
             foreach(var str in tmpList)
@@ -57,6 +64,7 @@ namespace vkAudio
             catch { }
         }
 
+        //get list of track names, perhaps for listbox
         public override List<string> GetTrackList()
         {
             return tracks.Select(x=>x.Name).ToList();

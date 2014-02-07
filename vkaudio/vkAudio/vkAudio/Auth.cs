@@ -23,7 +23,14 @@ namespace vkAudio
 
         private void Auth_Load(object sender, EventArgs e)
         {
-            webBrowser1.Navigate("https://oauth.vk.com/authorize?client_id=4141993&scope=audio&redirect_uri=http://oauth.vk.com/blank.html&display=page&response_type=token");
+            try
+            {
+                webBrowser1.Navigate("https://oauth.vk.com/authorize?client_id=4141993&scope=audio&redirect_uri=http://oauth.vk.com/blank.html&display=page&response_type=token");
+            }
+            catch
+            {
+                this.Hide();
+            }
         }
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
@@ -35,9 +42,9 @@ namespace vkAudio
                 IsAuth = true;
                 this.Hide();
             }
-            //this.Hide();
         }
 
+        //get parth of string
         public string GetBetween(string strSource , string strStart , string strEnd, int startPos = 0)
         {
             int iPos, iEnd, lenStart = strStart.Length;

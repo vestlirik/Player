@@ -8,6 +8,7 @@ namespace vkAudio
 {
     public class Audio
     {
+        //location of file
         protected string URL;
 
         public string GetLocation
@@ -18,6 +19,7 @@ namespace vkAudio
             }
         }
 
+        //human view of name
         public string Name { get; protected set; }
     }
 }

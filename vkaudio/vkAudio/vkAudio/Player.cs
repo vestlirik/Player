@@ -26,7 +26,7 @@ namespace vkAudio
         //Current status of the player
         PLAYER_STATUS curStatus;
 
-        //Main player(engine)
+        //referance of current stream
         int stream;
 
         //Delegate to let the clients know about Event change
@@ -38,47 +38,37 @@ namespace vkAudio
 
         public Player()
         {
-            //create engine
+            //engine initialization
             Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
 
-            //default status
+            //set default status
             curStatus = PLAYER_STATUS.PLAYER_STATUS_NOT_READY;
         }
-
-        public bool Repeat = false;
 
         //This will be the first step if we want to play something
         public void AttachSong(String url)
         {
             if (url != null)
             {
+                //destroy current playing stream
                 Bass.BASS_Free();
-
                 Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
-
-                //fromNetwork = false;
-
                 stream = Bass.BASS_StreamCreateFile(url, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT);
 
                 // pre-buffer
                 Bass.BASS_ChannelUpdate(stream, 0);
 
-
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
         }
-
+        //attach from internet
         public void AttachUrlSong(String url)
         {
             if (url != null)
             {
+                //destroy current playing stream
                 Bass.BASS_Free();
-                //Bass.
-
                 Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
-
-                //fromNetwork = false;
-
                 stream = Bass.BASS_StreamCreateURL(url, 0, BASSFlag.BASS_SAMPLE_FLOAT,null,IntPtr.Zero);
                 
                 // pre-buffer
@@ -88,7 +78,7 @@ namespace vkAudio
             }
         }
 
-        
+        //Play playback
         public void Play()
         {
             if (curStatus != PLAYER_STATUS.PLAYER_STATUS_PLAYING)
@@ -141,7 +131,7 @@ namespace vkAudio
             return curStatus;
         }
         
-        //Duration of current item
+        //Duration of current song
         public int Duration(string path)
         {
                 // length in bytes 
@@ -152,7 +142,7 @@ namespace vkAudio
                 return (int)time;
         }
         
-        ////HUman readable duration string
+        //Human readable duration string
         public string DurationString(string path)
         {
             // length in bytes 
@@ -195,7 +185,8 @@ namespace vkAudio
             curStatus = status;
             StatusChanged(curStatus);
         }
-        
+
+        //System volume
         public int Volume
         {
             get
@@ -208,6 +199,7 @@ namespace vkAudio
             }
         }
 
+        //Get Fraquency of current song(only for local files!!!)
         public double Fraquency(string str)
         {
             if (str.IndexOf("http") == 0)
@@ -215,7 +207,8 @@ namespace vkAudio
             TagLib.File file = TagLib.File.Create(str);
             return file.Properties.AudioSampleRate;
         }
-        
+
+        //Get Bitrate of current song(only for local files!!!)
         public int Bitrate(string str)
         {
             if (str.IndexOf("http") == 0)
@@ -224,6 +217,7 @@ namespace vkAudio
             return file.Properties.AudioBitrate;
         }
 
+        //Get artist+title of current song from Id3 tags (only for local files!!!)
         internal string GetName(string path)
         {
             try

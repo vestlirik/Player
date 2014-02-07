@@ -12,7 +12,6 @@ namespace vkAudio
 
         public AudioVK(System.Xml.XmlNode xmlNode)
         {
-            // TODO: Complete member initialization
             this.xmlNode = xmlNode;
 
             this.aid = xmlNode["aid"].InnerText;
@@ -42,15 +41,23 @@ namespace vkAudio
 
         }
 
+        //get lyrics of track
         public string GetLirycs(string token)
         {
             if (lyrics_id != "")
             {
-                Uri uri = new Uri("https://api.vk.com/method/audio.getLyrics.xml?lyrics_id=" + lyrics_id + "&access_token=" + token);
-                var x = new XmlDocument();
-                x.Load(uri.ToString());
-                var el = x.GetElementsByTagName("response")[0];
-                return el.ChildNodes[0].LastChild.InnerText;
+                try
+                {
+                    Uri uri = new Uri("https://api.vk.com/method/audio.getLyrics.xml?lyrics_id=" + lyrics_id + "&access_token=" + token);
+                    var x = new XmlDocument();
+                    x.Load(uri.ToString());
+                    var el = x.GetElementsByTagName("response")[0];
+                    return el.ChildNodes[0].LastChild.InnerText;
+                }
+                catch
+                {
+                    return "";
+                }
             }
             return "";
         }
