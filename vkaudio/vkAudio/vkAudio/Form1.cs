@@ -49,7 +49,6 @@ namespace vkAudio
             lastInput = DateTime.Now;
 
             timer1.Stop();
-            timer2.Stop();
 
             label7.Text = label8.Text = "";
             trackBar2.ValueChanged += trackBar2_ValueChanged;
@@ -345,6 +344,7 @@ namespace vkAudio
                         NextTrack();
                         lastInput = DateTime.Now;
                     }));
+                Thread.Sleep(50);
             }
         }
 
@@ -386,7 +386,7 @@ namespace vkAudio
             }
             catch
             {
-                timer2.Start();
+                
             }
             
         }
@@ -396,18 +396,12 @@ namespace vkAudio
             //player.CurruntPosition = trackBar1.Value;
         }
 
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            timer1.Stop();
-            NextTrack();
-            timer2.Stop();
-        }
 
         private void trackBar1_MouseDown(object sender, MouseEventArgs e)
         {
             double dblValue;
             dblValue = (e.X / (double)trackBar1.Width) * trackBar1.Maximum;
-            player.CurruntPosition = Convert.ToInt32(dblValue);// -player.CurruntPosition;
+            player.CurruntPosition = Convert.ToInt32(dblValue);
         }
 
 
@@ -458,7 +452,7 @@ namespace vkAudio
         private void OnStatusEnded()
         {
                 label6.Text = "Стоп";
-                timer2.Start();
+                NextTrack();
         }
 
         private void OnStatusPaused()

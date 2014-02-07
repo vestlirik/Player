@@ -42,7 +42,6 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.button5 = new System.Windows.Forms.Button();
             this.trackBar2 = new System.Windows.Forms.TrackBar();
@@ -195,12 +194,6 @@
             this.label6.Size = new System.Drawing.Size(31, 13);
             this.label6.TabIndex = 12;
             this.label6.Text = "Стоп";
-            // 
-            // timer2
-            // 
-            this.timer2.Enabled = true;
-            this.timer2.Interval = 10;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
             // richTextBox1
             // 
@@ -426,7 +419,6 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Timer timer2;
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.TrackBar trackBar2;
