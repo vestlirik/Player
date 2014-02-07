@@ -59,6 +59,7 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
+            this.button7 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.albumart)).BeginInit();
@@ -78,21 +79,26 @@
             // 
             // listBox1
             // 
+            this.listBox1.AllowDrop = true;
             this.listBox1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.listBox1.FormatString = "C2";
             this.listBox1.FormattingEnabled = true;
             this.listBox1.Location = new System.Drawing.Point(0, 0);
             this.listBox1.Name = "listBox1";
             this.listBox1.Size = new System.Drawing.Size(334, 491);
             this.listBox1.TabIndex = 2;
-            this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
+            this.listBox1.DragDrop += new System.Windows.Forms.DragEventHandler(this.listBox1_DragDrop);
+            this.listBox1.DragOver += new System.Windows.Forms.DragEventHandler(this.listBox1_DragOver);
             this.listBox1.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
+            this.listBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.listBox1_KeyPress);
+            this.listBox1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBox1_KeyUp);
             this.listBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseMove);
             // 
             // button2
             // 
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button2.Font = new System.Drawing.Font("Arial Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button2.Location = new System.Drawing.Point(421, 154);
+            this.button2.Location = new System.Drawing.Point(403, 154);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(71, 86);
             this.button2.TabIndex = 3;
@@ -104,7 +110,7 @@
             // 
             this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button3.Font = new System.Drawing.Font("Arial Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button3.Location = new System.Drawing.Point(498, 154);
+            this.button3.Location = new System.Drawing.Point(480, 154);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(71, 86);
             this.button3.TabIndex = 4;
@@ -116,7 +122,7 @@
             // 
             this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button4.Font = new System.Drawing.Font("Arial Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button4.Location = new System.Drawing.Point(655, 154);
+            this.button4.Location = new System.Drawing.Point(637, 154);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(71, 86);
             this.button4.TabIndex = 5;
@@ -162,7 +168,6 @@
             this.trackBar1.SmallChange = 3;
             this.trackBar1.TabIndex = 9;
             this.trackBar1.TickStyle = System.Windows.Forms.TickStyle.TopLeft;
-            this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
             this.trackBar1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.trackBar1_MouseDown);
             // 
             // label4
@@ -207,7 +212,7 @@
             // 
             this.button5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button5.Font = new System.Drawing.Font("Arial Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button5.Location = new System.Drawing.Point(575, 154);
+            this.button5.Location = new System.Drawing.Point(557, 154);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(71, 86);
             this.button5.TabIndex = 14;
@@ -251,7 +256,6 @@
             this.checkBox1.TabIndex = 17;
             this.checkBox1.Text = "репіт";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // checkBox2
             // 
@@ -306,7 +310,6 @@
             this.notifyIcon1.Text = "Натисніть, щоб зкопіювати назву пісні";
             this.notifyIcon1.BalloonTipClicked += new System.EventHandler(this.notifyIcon1_BalloonTipClicked);
             this.notifyIcon1.Click += new System.EventHandler(this.notifyIcon1_Click);
-            this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             // 
             // albumart
             // 
@@ -358,11 +361,23 @@
             this.label13.Text = "<<<";
             this.label13.Click += new System.EventHandler(this.label13_Click);
             // 
+            // button7
+            // 
+            this.button7.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.button7.Location = new System.Drawing.Point(717, 154);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(26, 86);
+            this.button7.TabIndex = 28;
+            this.button7.Text = "current";
+            this.button7.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1025, 491);
+            this.Controls.Add(this.button7);
             this.Controls.Add(this.label13);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);
@@ -391,11 +406,13 @@
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.button1);
             this.DoubleBuffered = true;
+            this.KeyPreview = true;
             this.Name = "Form1";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Form1";
+            this.TransparencyKey = System.Drawing.Color.Silver;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
-            this.Click += new System.EventHandler(this.Form1_Click);
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.albumart)).EndInit();
@@ -436,6 +453,7 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Button button7;
     }
 }
 

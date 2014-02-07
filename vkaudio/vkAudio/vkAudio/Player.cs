@@ -95,6 +95,7 @@ namespace vkAudio
             {
 
                 Bass.BASS_ChannelStop(stream);
+                Bass.BASS_Free();
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
         }

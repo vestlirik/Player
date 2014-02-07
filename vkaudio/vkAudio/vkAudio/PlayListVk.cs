@@ -68,5 +68,15 @@ namespace vkAudio
         {
             return tracks.Select(x => x.Name).ToList();
         }
+
+        public override void Remove(int selIndex)
+        {
+            tracks.RemoveAt(selIndex);
+        }
+
+        public override void RemoveFile(int selIndex)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

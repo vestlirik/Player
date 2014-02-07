@@ -136,15 +136,11 @@ namespace vkAudio
         }
 
 
-        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
             playlist.SelTrack = listBox1.SelectedIndex;
             if (checkBox2.Checked)
+                if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
                 cherga.Add(playlist.SelTrack);
             PlayTrack();
         }
@@ -391,11 +387,6 @@ namespace vkAudio
             
         }
 
-        private void trackBar1_Scroll(object sender, EventArgs e)
-        {
-            //player.CurruntPosition = trackBar1.Value;
-        }
-
 
         private void trackBar1_MouseDown(object sender, MouseEventArgs e)
         {
@@ -482,7 +473,6 @@ namespace vkAudio
         private void button5_Click(object sender, EventArgs e)
         {
             player.Stop();
-            
         }
 
         private void trackBar2_Scroll(object sender, EventArgs e)
@@ -504,11 +494,6 @@ namespace vkAudio
                     listBox1.Items.Add(elm);
                 }
             }
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
@@ -536,11 +521,6 @@ namespace vkAudio
         {
             if (!listBox1.Focused)
                 listBox1.Focus();
-        }
-
-        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-
         }
 
 
@@ -665,15 +645,78 @@ namespace vkAudio
             textBox1.Focus();
         }
 
-        private void Form1_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             notifyIcon1.Visible = false;
         }
+        private void listBox1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Delete && e.KeyData.ToString() != "Delete, Shift")
+            {
+                int selIndex = listBox1.SelectedIndex;
+                playlist.Remove(selIndex);
+                if (selIndex <= playlist.SelTrack)
+                    playlist.SelTrack--;
+                listBox1.Items.RemoveAt(selIndex);
+                    if (checkBox2.Checked)
+                    {
+                        if (cherga.Contains(selIndex))
+                            cherga.Remove(selIndex);
+                    }
+                listBox1.SelectedIndex = selIndex;
+            }
+            if (e.KeyData.ToString()=="Delete, Shift")
+            {
+                var res = MessageBox.Show("Видалення файлу","Точно видалити назавжди файл?",MessageBoxButtons.YesNo);
+                if (res == DialogResult.Yes)
+                {
+                    int selIndex = listBox1.SelectedIndex;
+                    if (playlist.SelTrack == selIndex)
+                    {
+                        player.Stop();
+                    }
+                    playlist.RemoveFile(selIndex);
+                    listBox1.Items.RemoveAt(selIndex);
+
+                     
+                    if (playlist.SelTrack == selIndex)
+                    {
+                         
+                        if (checkBox2.Checked)
+                        {
+                            if (cherga.Contains(selIndex))
+                                cherga.Remove(selIndex);
+                        }
+                        PlayTrack();
+                    }
+                    if (selIndex < playlist.SelTrack)
+                        playlist.SelTrack--;
+                    listBox1.SelectedIndex = selIndex;
+                }
+            }
+        }
+
+        private void listBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if((int)e.KeyChar==13)
+            {
+                listBox1_DoubleClick(listBox1, new EventArgs());
+            }
+        }
+
+
+        private void listBox1_DragDrop(object sender, DragEventArgs e)
+        {
+            MessageBox.Show("Drag and drop!!!");
+        }
+
+        private void listBox1_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Copy;
+            
+        }
+
+
 
 
     }
