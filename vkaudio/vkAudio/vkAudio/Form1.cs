@@ -266,7 +266,9 @@ namespace vkAudio
             listBox1.SelectedIndex = playlist.SelTrack;
 
             if (plstType.Name == "PlayListVk")
-            richTextBox1.Text = ((AudioVK)currSong).GetLirycs(auth.Token);
+                richTextBox1.Text = ((AudioVK)currSong).GetLirycs(auth.Token);
+            else
+                richTextBox1.Clear();
 
             player.Play();
 
@@ -391,7 +393,13 @@ namespace vkAudio
         private void trackBar1_MouseDown(object sender, MouseEventArgs e)
         {
             double dblValue;
-            dblValue = (e.X / (double)trackBar1.Width) * trackBar1.Maximum;
+            int point = e.X;
+            if (e.X < trackBar1.Width / 2-80)
+                point -= 10;
+            else
+                if (e.X > trackBar1.Width / 2+80)
+                    point += 10;
+            dblValue = (point / (double)trackBar1.Width) * trackBar1.Maximum;
             player.CurruntPosition = Convert.ToInt32(dblValue);
         }
 
@@ -505,8 +513,14 @@ namespace vkAudio
         private void trackBar2_MouseDown(object sender, MouseEventArgs e)
         {
             double dblValue;
-            int z = 382;
-            dblValue = ((z - e.Y) / (double)(z)) * trackBar2.Maximum;
+            int z = trackBar2.Height;
+            int point = e.Y;
+            if (e.Y < z / 2 - 80)
+                point -= 10;
+            else
+                if (e.Y > z / 2 + 80)
+                    point += 10;
+            dblValue = ((z - point) / (double)(z)) * trackBar2.Maximum;
             player.Volume = Convert.ToInt32(dblValue);
             trackBar2.Value = player.Volume;
         }
@@ -714,6 +728,11 @@ namespace vkAudio
         {
             e.Effect = DragDropEffects.Copy;
             
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            listBox1.SelectedIndex = playlist.SelTrack;
         }
 
 

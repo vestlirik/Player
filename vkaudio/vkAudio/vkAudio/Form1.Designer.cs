@@ -204,6 +204,7 @@
             // 
             this.richTextBox1.Location = new System.Drawing.Point(355, 272);
             this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.ReadOnly = true;
             this.richTextBox1.Size = new System.Drawing.Size(366, 207);
             this.richTextBox1.TabIndex = 13;
             this.richTextBox1.Text = "";
@@ -370,13 +371,14 @@
             this.button7.TabIndex = 28;
             this.button7.Text = "current";
             this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
             // Form1
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1025, 491);
+            this.ClientSize = new System.Drawing.Size(810, 491);
             this.Controls.Add(this.button7);
             this.Controls.Add(this.label13);
             this.Controls.Add(this.label12);

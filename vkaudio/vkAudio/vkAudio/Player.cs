@@ -203,19 +203,33 @@ namespace vkAudio
         //Get Fraquency of current song(only for local files!!!)
         public double Fraquency(string str)
         {
-            if (str.IndexOf("http") == 0)
+            try
+            {
+                if (str.IndexOf("http") == 0)
+                    return 0;
+                TagLib.File file = TagLib.File.Create(str);
+                return file.Properties.AudioSampleRate;
+            }
+            catch
+            {
                 return 0;
-            TagLib.File file = TagLib.File.Create(str);
-            return file.Properties.AudioSampleRate;
+            }
         }
 
         //Get Bitrate of current song(only for local files!!!)
         public int Bitrate(string str)
         {
-            if (str.IndexOf("http") == 0)
+            try
+            {
+                if (str.IndexOf("http") == 0)
+                    return 0;
+                TagLib.File file = TagLib.File.Create(str);
+                return file.Properties.AudioBitrate;
+            }
+            catch
+            {
                 return 0;
-            TagLib.File file = TagLib.File.Create(str);
-            return file.Properties.AudioBitrate;
+            }
         }
 
         //Get artist+title of current song from Id3 tags (only for local files!!!)
