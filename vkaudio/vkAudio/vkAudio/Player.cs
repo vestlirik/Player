@@ -240,12 +240,19 @@ namespace vkAudio
                 TagLib.File file = TagLib.File.Create(path);
                 if (file.Tag.Artists[0].Trim() == "" || file.Tag.Title.Trim() == "")
                     return "";
-                return file.Tag.Artists[0] + " - " + file.Tag.Title;
+                return toUtf8(file.Tag.Artists[0]) + " - " + toUtf8(file.Tag.Title);
             }
             catch
             {
                 return "";
             }
+        }
+
+        private string toUtf8(string unknown)
+        {
+            return new string(unknown.ToCharArray().
+                Select(x => ((x + 848) >= 'А' && (x + 848) <= 'ё') ? (char)(x + 848) : x).
+                ToArray());
         }
     }
 }
