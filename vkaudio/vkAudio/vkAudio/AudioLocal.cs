@@ -12,7 +12,14 @@ namespace vkAudio
         {
             this.URL = pth;
             //human view of name
-            this.Name = pth.Substring(pth.LastIndexOf("\\") + 1, pth.LastIndexOf(".mp3") - pth.LastIndexOf("\\") - 1);
+            try
+            {
+                this.Name = pth.Substring(pth.LastIndexOf("\\") + 1, pth.LastIndexOf(".mp3") - pth.LastIndexOf("\\") - 1);
+            }
+            catch
+            {
+                this.Name = pth;
+            }
         }
 
     }

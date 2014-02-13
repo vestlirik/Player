@@ -46,7 +46,7 @@ namespace vkAudio
 
             var userId = data[0];
             var token = data[1];
-            Uri uri = new Uri("https://api.vk.com/method/audio.get.xml?owner_id=" + userId + "&count=50" + "&access_token=" + token);
+            Uri uri = new Uri("https://api.vk.com/method/audio.get.xml?owner_id=" + userId + /*"&count=50" + */"&access_token=" + token);
 
             var x = new XmlDocument();
             x.Load(uri.ToString());
