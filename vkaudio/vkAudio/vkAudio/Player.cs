@@ -38,6 +38,7 @@ namespace vkAudio
 
         public Player()
         {
+            BassNet.Registration("vestlirik@ukr.net","2X1723201782018");
             //engine initialization
             Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
 
