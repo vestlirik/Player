@@ -255,5 +255,6 @@ namespace vkAudio
                 Select(x => ((x + 848) >= 'А' && (x + 848) <= 'ё') ? (char)(x + 848) : x).
                 ToArray());
         }
+
     }
 }

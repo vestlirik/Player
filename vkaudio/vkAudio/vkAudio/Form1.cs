@@ -260,6 +260,9 @@ namespace vkAudio
             {
                 currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
                 player.AttachUrlSong(currSong.GetLocation);
+                //set status
+                var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
+                ((PlayListVk)playlist).SetStatus(audioId, auth.Token);
             }
 
 
@@ -732,7 +735,24 @@ namespace vkAudio
 
         private void button7_Click(object sender, EventArgs e)
         {
+            listBox1.SelectedIndex = -1;
             listBox1.SelectedIndex = playlist.SelTrack;
+            
+        }
+
+        //online
+        private void button8_Click(object sender, EventArgs e)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/account.setOnline.xml?voip=0" + "&access_token=" + auth.Token);
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+        }
+        //off
+        private void button9_Click(object sender, EventArgs e)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/account.setOffline" + "&access_token=" + auth.Token);
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
         }
 
 

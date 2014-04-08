@@ -78,5 +78,15 @@ namespace vkAudio
         {
             throw new NotImplementedException();
         }
+
+
+        //for vk
+        public void SetStatus(string audioId,string token)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.setBroadcast.xml?audio=" + audioId + /*"&count=50" + */"&access_token=" + token);
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+            
+        }
     }
 }

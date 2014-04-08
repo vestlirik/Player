@@ -25,7 +25,7 @@ namespace vkAudio
         {
             try
             {
-                webBrowser1.Navigate("https://oauth.vk.com/authorize?client_id=4141993&scope=audio&redirect_uri=http://oauth.vk.com/blank.html&display=page&response_type=token");
+                webBrowser1.Navigate("https://oauth.vk.com/authorize?client_id=4141993&scope=audio,status&redirect_uri=http://oauth.vk.com/blank.html&display=page&response_type=token");
             }
             catch
             {
