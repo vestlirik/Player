@@ -1,8 +1,69 @@
 ﻿<Window x:Class="VkAudioWpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="MainWindow" Background="Silver" Height="500" Width="800" AllowsTransparency="True" WindowStyle="None" >
+    <Window.Resources>
+        <Style  TargetType="Button">
+            <Setter Property="Background"
+          Value="Silver" />
+            <Setter Property="HorizontalAlignment"
+          Value="Center" />
+            <Setter Property="VerticalAlignment"
+          Value="Center" />
+            <Setter Property="Foreground"
+          Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="bg"
+                Background="{TemplateBinding Background}"
+                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                   Value="True">
+                                <Setter Property="Background"
+                    Value="SlateGray"
+                    TargetName="bg" />
+                            </Trigger>
+                            <Trigger Property="IsPressed"
+                   Value="True">
+                                <Setter Property="Background"
+                    Value="RoyalBlue"
+                    TargetName="bg" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border BorderThickness="1" BorderBrush="Black">
+        <StackPanel>
+            <Border BorderThickness="0,0,0,1" BorderBrush="Black">
+                <Grid Height="30px" Background="Silver" MouseLeftButtonUp="Grid_MouseLeftButtonUp" MouseMove="Grid_MouseMove" MouseLeftButtonDown="Grid_MouseLeftButtonDown" MouseDown="Grid_MouseDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30px"/>
+                        <ColumnDefinition Width="30px"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="30px"/>
+                        <ColumnDefinition Width="30px"/>
+                        <ColumnDefinition Width="30px"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Width="30px" Height="30px" Background="Silver" Foreground="White"  Grid.Column="0" IsEnabled="False">Z</Button>
+                    <Button Width="30px" Height="30px" Background="Silver" Foreground="White"  Grid.Column="1"  >
+                        <Image Source="/images/settings.png"/>
+                    </Button>
+
+                    <Label Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2">VkAudio</Label>
+                    
+                    <Button Width="30px" Height="30px" Background="Silver" Foreground="White"  Grid.Column="3" >_</Button>
+                    <Button Width="30px" Height="30px" Background="Silver" Foreground="White"  Grid.Column="4" >M</Button>
+                    <Button Width="30px" Height="30px" Background="Silver" Foreground="White"  Grid.Column="5" MouseEnter="Button_MouseEnter" Click="Exit">X</Button>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </Border>
 </Window>
