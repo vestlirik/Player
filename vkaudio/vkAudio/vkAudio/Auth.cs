@@ -19,6 +19,7 @@ namespace vkAudio
         {
             InitializeComponent();
             IsAuth = false;
+            
         }
 
         private void Auth_Load(object sender, EventArgs e)

@@ -50,7 +50,11 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="Skybound.Gecko">
+      <HintPath>..\..\..\..\..\..\Downloads\Skybound.GeckoFX.bin.v1.9.1.0\bin\Skybound.Gecko.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Xaml" />
@@ -66,6 +70,9 @@
       <HintPath>.\taglib-sharp.dll</HintPath>
     </Reference>
     <Reference Include="UIAutomationProvider" />
+    <Reference Include="WebKitBrowser">
+      <HintPath>..\..\..\..\..\..\Downloads\WebKit.NET-0.5-bin-cairo\bin\WebKitBrowser.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
@@ -103,6 +110,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
