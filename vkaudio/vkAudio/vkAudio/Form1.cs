@@ -102,19 +102,21 @@ namespace vkAudio
             {
                 ////Авторизация в вк
                 auth.ShowDialog();
-                try
+                if (auth.IsAuth)
                 {
-                    ////загрузка данных о профиле
-                    XmlDocument x = new XmlDocument();
-                    x.Load("https://api.vk.com/method/getProfiles.xml?uid=" + auth.UserId + "&access_token=" + auth.Token);
-                    // Парсим
-                    var el = x.GetElementsByTagName("user")[0];
+                    try
+                    {
+                        ////загрузка данных о профиле
+                        XmlDocument x = new XmlDocument();
+                        x.Load("https://api.vk.com/method/getProfiles.xml?uid=" + auth.UserId + "&access_token=" + auth.Token);
+                        // Парсим
+                        var el = x.GetElementsByTagName("user")[0];
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Неможливо з'єднатися з vk.com");
+                    }
                 }
-                catch
-                {
-                    MessageBox.Show("Неможливо з'єднатися з vk.com");
-                }
-
                 //label3.Text += el.ChildNodes[1].InnerText + " " + el.ChildNodes[2].InnerText;
             }
         }

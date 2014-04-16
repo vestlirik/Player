@@ -35,10 +35,10 @@ namespace vkAudio
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            if (webBrowser1.Document.Body.InnerText.Contains("Эта программа не может отобразить эту веб-страницу")
-                || webBrowser1.Document.Body.InnerText.Contains("Переход на веб-страницу отменен"))
-                this.Hide();
-            else
+            //if (webBrowser1.Document.Body.InnerText.Contains("Эта программа не может отобразить эту веб-страницу")
+            //    || webBrowser1.Document.Body.InnerText.Contains("Переход на веб-страницу отменен"))
+            //    this.Hide();
+            //else
             if( e.Url.ToString().IndexOf("access_token") != -1)
             {//Если в коде страницы есть acces_token, то
                 Token = GetBetween(e.Url.ToString(), "access_token=", "&expires", 0);
