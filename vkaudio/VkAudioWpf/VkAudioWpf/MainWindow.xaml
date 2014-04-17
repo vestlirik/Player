@@ -45,11 +45,11 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <!-- Content handles within a border -->
-                        <Border x:Name="bdr" CornerRadius="15" Margin="3" BorderThickness="1" BorderBrush="Black" Background="DarkSlateGray" Height="40px" Width="40px">
+                        <Border x:Name="bdr" CornerRadius="0" Margin="3" BorderThickness="1" BorderBrush="Black" Background="DarkSlateGray" >
                             <!-- ContentPresenter properties. Set the content source as the content from each control define below -->
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Content" TextBlock.FontSize="20" />
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Content" TextBlock.FontSize="12" />
                         </Border>
-                        
+
                         <!-- Required triggers define here -->
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -60,6 +60,176 @@
                 </Setter.Value>
             </Setter>
             <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="{x:Type TabItem}">
+            <!-- Template for button style -->
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid>
+                            <Border Name="Border" Margin="0,0,0,0" Background="Transparent"
+                  BorderBrush="Black" BorderThickness="1" CornerRadius="0">
+                                <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center"
+                              HorizontalAlignment="Center"
+                              ContentSource="Header" Margin="12,2,12,2"
+                              RecognizesAccessKey="True">
+                                </ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="DarkSlateGray" />
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" SourceName="Border" Value="True" />
+                                    <Condition Property="IsSelected" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="DarkSlateGray" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" SourceName="Border" Value="True" />
+                                    <Condition Property="IsSelected" Value="False" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="DarkGray" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- All ComboBox styles -->
+        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="20" />
+                </Grid.ColumnDefinitions>
+                <Border
+          x:Name="Border" 
+          Grid.ColumnSpan="2"
+          CornerRadius="5"
+          Background="DarkSlateGray"
+          BorderBrush="DarkSlateGray"
+          BorderThickness="1" />
+                <Border 
+          Grid.Column="0"/>
+                <Path 
+          x:Name="Arrow"
+          Grid.Column="1"     
+          Fill="White"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="Border" Property="Background" Value="LightGray" />
+                    <Setter TargetName="Border" Property="BorderBrush" Value="Gray" />
+                    <Setter Property="Foreground" Value="DarkGray"/>
+                    <Setter TargetName="Arrow" Property="Fill" Value="DarkGray" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- ComboBox TextBox -->
+        <ControlTemplate x:Key="ComboBoxTextBox" TargetType="TextBox">
+            <Border x:Name="PART_ContentHost" Focusable="False" Background="DarkSlateGray" />
+        </ControlTemplate>
+
+        <!-- ComboBox style -->
+        <Style x:Key="{x:Type ComboBox}" TargetType="ComboBox">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="MinHeight" Value="20"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton 
+                    Name="ToggleButton" 
+                    Template="{StaticResource ComboBoxToggleButton}" 
+                    Grid.Column="2" 
+                    Focusable="false"
+                    IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
+                    ClickMode="Press">
+                            </ToggleButton>
+                            <ContentPresenter
+                        Name="ContentSite"
+                        IsHitTestVisible="False" 
+                        Content="{TemplateBinding SelectionBoxItem}"
+                        ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                        ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                        Margin="3,3,23,3"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left" />
+                            <TextBox x:Name="PART_EditableTextBox"
+                        Style="{x:Null}" 
+                        Template="{StaticResource ComboBoxTextBox}" 
+                        HorizontalAlignment="Left" 
+                        VerticalAlignment="Center" 
+                        Text="{TemplateBinding Text}"
+                        Margin="3,3,23,3"
+                        Focusable="True" 
+                        Background="Transparent"
+                        Visibility="Visible"
+                        Foreground="White"
+                        IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <Popup 
+                        Name="Popup"
+                        Placement="Bottom"
+                        IsOpen="{TemplateBinding IsDropDownOpen}"
+                        AllowsTransparency="True" 
+                        Focusable="False"
+                        PopupAnimation="Slide">
+                                <Grid 
+                          Name="DropDown"
+                          SnapsToDevicePixels="True"                
+                          MinWidth="{TemplateBinding ActualWidth}"
+                          MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border 
+                                x:Name="DropDownBorder"
+                                Background="White"
+                                BorderThickness="1"
+                                BorderBrush="DarkSlateGray"/>
+                                    <ScrollViewer Margin="0" SnapsToDevicePixels="True" >
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" Background="DarkSlateGray"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="false">
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="LightGray"/>
+                            </Trigger>
+                            <Trigger Property="IsGrouping" Value="true">
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </Trigger>
+                            <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="true">
+                                <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="0,0,4,4"/>
+                                <Setter TargetName="DropDownBorder" Property="Margin" Value="0"/>
+                            </Trigger>
+                            <Trigger Property="IsEditable"
+           Value="true">
+                                <Setter Property="IsTabStop" Value="false"/>
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
     <Border BorderThickness="1" BorderBrush="Black">
@@ -101,28 +271,28 @@
                             320 kbps      44 100 Hz
                         </Label>
                         <DockPanel Margin="5px" Width="auto">
-                            <Button Style="{StaticResource roundedButton}">
-                                <Image Source="/images/prev.png" Width="40px" Height="40px" Margin="10px,10px,0,0"></Image>
+                            <Button Style="{StaticResource roundedButton}" Height="50px" Width="50px">
+                                <Image Source="/images/prev.png" Height="40px" Width="40px" Margin="10px,10px,0,0"></Image>
                             </Button>
-                            <Button Style="{StaticResource roundedButton}">
+                            <Button Style="{StaticResource roundedButton}" Height="50px" Width="50px">
                                 <Image Source="images/playpause.png" Height="40px" Width="40px" Margin="0,10px,0,0" StretchDirection="DownOnly"/>
                             </Button>
-                            <Button Style="{StaticResource roundedButton}">
+                            <Button Style="{StaticResource roundedButton}" Height="50px" Width="50px">
                                 <Rectangle Width="15px" Height="15px" Fill="White"></Rectangle>
                             </Button>
-                            <Button  Style="{StaticResource roundedButton}">
+                            <Button  Style="{StaticResource roundedButton}" Height="50px" Width="50px">
                                 <Image Source="/images/next.png" Width="40px" Height="40px" Margin="15px,10px,0,0"></Image>
                             </Button>
-                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right" Height="50px" Width="50px">
                                 PL
                             </Button>
-                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right" >
+                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right" Height="50px" Width="50px" >
                                 EQ
                             </Button>
-                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right" >
+                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right"  Height="50px" Width="50px">
                                 SH
                             </Button>
-                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right" >
+                            <Button  Style="{StaticResource roundedButton}" HorizontalAlignment="Right" DockPanel.Dock="Right"  Height="50px" Width="50px">
                                 RE
                             </Button>
                             
@@ -131,7 +301,7 @@
                     </StackPanel>
                 </Grid>
             </Border>
-            <TabControl Height="auto" >
+            <TabControl Height="auto" Background="Silver">
                 <TabItem Header="Мої аудіо">
                     <Grid Height="auto">
                         <Grid.RowDefinitions>
@@ -139,9 +309,77 @@
                             <RowDefinition Height="300px"></RowDefinition>
                             <RowDefinition Height="30px"></RowDefinition>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0">acccount - vk, authorize, count of tracks,sorting</Label>
-                        <Label Grid.Row="1">tracks</Label>
-                        <Label Grid.Row="2">search</Label>
+                        <!--acccount - vk, authorize, count of tracks,sorting-->
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource roundedButton}">Авторизуватися в VK</Button>
+                            <Label>Victor Kiriltsev</Label>
+                            <Button Style="{StaticResource roundedButton}">Вийти</Button>
+                            <Label>1600 треків</Label>
+                            <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True">
+                                <ComboBoxItem>За датою додавання</ComboBoxItem>
+                                <ComboBoxItem>За назвою</ComboBoxItem>
+                            </ComboBox>
+                            <Button  Style="{StaticResource roundedButton}">Z->A</Button>
+                            <Button  Style="{StaticResource roundedButton}">Транслювати в вк</Button>
+                            <Button  Style="{StaticResource roundedButton}">Поточний трек</Button>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Margin="5">
+                            <Grid Height="25px" VerticalAlignment="Top" Margin="0,0,0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0">Мері - Сестра</Label>
+                                <Label Grid.Column="1">320 kbps</Label>
+                                <Label Grid.Column="2">44 100 Hz</Label>
+                                <Label Grid.Column="3">4:09</Label>
+                                <Label Grid.Column="4">10,9 MB</Label>
+                                <Button Grid.Column="5"  Style="{StaticResource roundedButton}">Скачати</Button>
+                            </Grid>
+                            <Grid Height="25px" VerticalAlignment="Top" Margin="0,0,0,3" Background="#FFD3F3E3" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0">Скрябін - Ти тормознута</Label>
+                                <Label Grid.Column="1">320 kbps</Label>
+                                <Label Grid.Column="2">44 100 Hz</Label>
+                                <Label Grid.Column="3">4:09</Label>
+                                <Label Grid.Column="4">10,9 MB</Label>
+                                <Button Grid.Column="5"  Style="{StaticResource roundedButton}">Скачати</Button>
+                            </Grid>
+                            <Grid Height="25px" VerticalAlignment="Top" Margin="0,0,0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0">Кузьма и группа "Скрябин" - Спи собі сама..."</Label>
+                                <Label Grid.Column="1">320 kbps</Label>
+                                <Label Grid.Column="2">44 100 Hz</Label>
+                                <Label Grid.Column="3">4:09</Label>
+                                <Label Grid.Column="4">10,9 MB</Label>
+                                <Button Grid.Column="5"  Style="{StaticResource roundedButton}">Скачати</Button>
+                            </Grid>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2">
+                            <Label>Пошук в списку</Label>
+                            <TextBox Width="250" Background="DarkGray"></TextBox>
+                            <Button Width="30" Style="{StaticResource roundedButton}">Х</Button>
+                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}"></Button>
+                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}"></Button>
+                        </StackPanel>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Мої альбоми"></TabItem>
