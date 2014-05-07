@@ -20,6 +20,10 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Windows.Interop;
+using System.Windows.Controls.Primitives;
+using System.Net;
+using System.IO;
 
 namespace VkAudioWpf
 {
@@ -37,6 +41,8 @@ namespace VkAudioWpf
 
         //время последнего нажатия горячей кнопки
         DateTime lastInput;
+
+        bool showInVk = true;
 
         //очередь для случайного воспроизведения
         List<int> cherga = new List<int>();
@@ -65,7 +71,7 @@ namespace VkAudioWpf
 
             timer.Stop();
 
-            startTime.Content = startTime.Content = "";
+            startTime.Content = startTime.Content = "0:00";
             progressBar.Value = 0;
 
             //громкость
@@ -92,10 +98,9 @@ namespace VkAudioWpf
             buttonPrevious.Click +=
               new EventHandler<ThumbnailButtonClickedEventArgs>(prevButton_Click1);
 
-            TaskbarManager.Instance.ThumbnailToolBars.AddButtons
-               (Process.GetCurrentProcess().Handle, buttonPrevious, buttonPlayPause, buttonNext);
-           // TaskbarManager.Instance.TabbedThumbnail.SetThumbnailClip
-            //  (Process.GetCurrentProcess().MainWindowHandle, new Rectangle(albumart.Location, albumart.Size)); 
+            
+            //TaskbarManager.Instance.TabbedThumbnail.SetThumbnailClip
+            //  (Process.GetCurrentProcess().MainWindowHandle, new System.Drawing.Rectangle(new System.Drawing.Point(0, 0), new System.Drawing.Size(10,10))); 
             #endregion
 
 
@@ -105,6 +110,11 @@ namespace VkAudioWpf
             logInButton.Visibility = System.Windows.Visibility.Visible;
             logOutButton.Visibility = System.Windows.Visibility.Collapsed;
             usernameLabel.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        public bool ShowBroadcast
+        {
+            get { return showInVk; }
         }
 
         private void prevButton_Click1(object sender, ThumbnailButtonClickedEventArgs e)
@@ -147,6 +157,14 @@ namespace VkAudioWpf
             Formms.MethodInvoker mi = new Formms.MethodInvoker(WaitKey);
             mi.BeginInvoke(null, null);
             #endregion
+
+            Window window = Window.GetWindow(this);
+            var wih = new WindowInteropHelper(window);
+            IntPtr hWnd = wih.Handle;
+
+
+            TaskbarManager.Instance.ThumbnailToolBars.AddButtons
+               (hWnd, buttonPrevious, buttonPlayPause, buttonNext);
         }
 
         private void GetAuth()
@@ -190,6 +208,7 @@ namespace VkAudioWpf
                 listBox.Items.Clear();
                 foreach (var elm in ((PlayListVk)playlist).GetTrackListVK())
                 {
+                    #region xaml listboxitem
                     //<ListBoxItem Height="25px" HorizontalAlignment="Stretch" Margin="0,0,0,3">
                     //            <Grid>
                     //                <Grid.ColumnDefinitions>
@@ -209,9 +228,10 @@ namespace VkAudioWpf
                     //                <Button Grid.Column="5" Style="{StaticResource roundedButton}">Скачати</Button>
                     //                <Button Grid.Column="6"  Style="{StaticResource roundedButton}">X</Button>
                     //            </Grid>
-                    //        </ListBoxItem>
+                    //        </ListBoxItem> 
+                    #endregion
                     ListBoxItem lstItem = new ListBoxItem();
-                    lstItem.Height = 25;
+                    lstItem.Height = 30;
                     lstItem.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
                     lstItem.Margin = new Thickness(0, 0, 0, 3);
                     lstItem.Style = this.FindResource("lstStyle") as Style;
@@ -228,44 +248,75 @@ namespace VkAudioWpf
                     #endregion
 
 
-                    System.Windows.Controls.Label lbl= new System.Windows.Controls.Label();
-                    lbl.Content=elm.artist + " - " + elm.title;
+                    #region add elements in grid for listboxitem
+                    System.Windows.Controls.Label lbl = new System.Windows.Controls.Label();
+                    lbl.Content = elm.artist + " - " + elm.title;
                     Grid.SetColumn(lbl, 0);
                     grid.Children.Add(lbl);
 
-                    lbl= new System.Windows.Controls.Label();
+                    lbl = new System.Windows.Controls.Label();
                     lbl.Content = "320" + " kbps";
                     Grid.SetColumn(lbl, 1);
                     grid.Children.Add(lbl);
-                    
-                    lbl= new System.Windows.Controls.Label();
+
+                    lbl = new System.Windows.Controls.Label();
                     lbl.Content = "44100" + " Hz";
                     Grid.SetColumn(lbl, 2);
                     grid.Children.Add(lbl);
-                    
-                    lbl= new System.Windows.Controls.Label();
+
+                    lbl = new System.Windows.Controls.Label();
                     lbl.Content = elm.DurationString;
                     Grid.SetColumn(lbl, 3);
                     grid.Children.Add(lbl);
+
+                    lbl = new System.Windows.Controls.Label();
+                    lbl.Name = "lbl"+listBox.Items.Count;
+
+                    lbl.MouseEnter += lbl_MouseEnter;
+                    //new Task((() =>
+                    //    {
+
+                    //        this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                    //        {
+
+                    //            lbl.Content = String.Format("{0:0.00}", GetSize(elm.GetLocation)) + " MB";
+
+                    //            return null;
+
+                    //        }), null);
+
+                    //    }
+
+
+                    //    )).Start();
                     
-                    lbl= new System.Windows.Controls.Label();
-                    lbl.Content = "12 MB";
                     Grid.SetColumn(lbl, 4);
                     grid.Children.Add(lbl);
-                    
-                    Button btn=new Button();
-                    btn.Style=this.FindResource("roundedButton") as Style;
+
+                    Button btn = new Button();
+                    btn.Style = this.FindResource("roundedButton") as Style;
                     btn.Content = "Скачати";
+
+                    btn.Click += (object send, RoutedEventArgs ee) =>
+                    {
+                         DownloadFile(elm.GetLocation,elm.Name);
+                    };
+                       
+
                     Grid.SetColumn(btn, 5);
                     grid.Children.Add(btn);
 
-                    btn=new Button();
-                    btn.Style=this.FindResource("roundedButton") as Style;
+                    btn = new Button();
+                    btn.Style = this.FindResource("roundedButton") as Style;
                     btn.Content = "X";
                     Grid.SetColumn(btn, 6);
-                    grid.Children.Add(btn);
+                    grid.Children.Add(btn); 
+                    #endregion
 
                     lstItem.Content = grid;
+
+                    lstItem.MouseDoubleClick += lstItem_MouseDoubleClick;
+                    lstItem.MouseEnter += lstItem_MouseEnter;
 
                     listBox.Items.Add(lstItem);
                 }
@@ -273,15 +324,16 @@ namespace VkAudioWpf
                 
             }
         }
-
-        private void listBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+               
+        void lstItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             playlist.SelTrack = listBox.SelectedIndex;
-            if (checkBoxShuffle.IsChecked==true)
+            if (checkBoxShuffle.IsChecked == true)
                 if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
                     cherga.Add(playlist.SelTrack);
             PlayTrack();
         }
+
 
         private void prevButton_Click(object sender, RoutedEventArgs e)
         {
@@ -361,6 +413,7 @@ namespace VkAudioWpf
             if (player.GetPlayerstatus() == PLAYER_STATUS.PLAYER_STATUS_PAUSED)
             {
                 player.Resume();
+                
             }
             else if (player.GetPlayerstatus() == PLAYER_STATUS.PLAYER_STATUS_PLAYING)
             {
@@ -401,6 +454,7 @@ namespace VkAudioWpf
                 player.AttachUrlSong(currSong.GetLocation);
                 //set status
                 var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
+                if(ShowBroadcast)
                 ((PlayListVk)playlist).SetStatus(audioId, auth.Token);
             }
 
@@ -434,7 +488,7 @@ namespace VkAudioWpf
 
             timer.Enabled = true;
 
-            this.headerLabel.Content = titleLabel.Content+" - Vk Audio";
+            this.headerLabel.Content = titleLabel.Content+" - Zeus";
 
             var tmpStr = titleLabel.Content.ToString();
             var str = tmpStr.Length > 64 ? tmpStr.Substring(0, 64) : tmpStr;
@@ -516,7 +570,7 @@ namespace VkAudioWpf
                 {
                     progressBar.Value = (int)player.CurruntPosition;
                     startTime.Content = player.CurruntPositionString;
-                    tbManager.SetProgressValue((int)progressBar.Value,(int) progressBar.Maximum, Process.GetCurrentProcess().Handle);
+                    tbManager.SetProgressValue((int)progressBar.Value,(int) progressBar.Maximum, Process.GetCurrentProcess().MainWindowHandle);
                 }
 
             }
@@ -588,17 +642,19 @@ namespace VkAudioWpf
                 buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
             }
             headerLabel.Content = "Стоп";
+
+            ChangePlayPauseIconInButton(false);
         }
 
         private void OnStatusEnded()
         {
-            //label6.Text = "Стоп";
+            ChangePlayPauseIconInButton(false);
             NextTrack();
         }
 
         private void OnStatusPaused()
         {
-            //label6.Text = "Пауза";
+            ChangePlayPauseIconInButton(false);
             tbManager.SetProgressState(TaskbarProgressBarState.Paused);
             timer.Stop();
 
@@ -607,7 +663,7 @@ namespace VkAudioWpf
 
         private void OnStatusPlaying()
         {
-            //label6.Text = "Грає";
+            ChangePlayPauseIconInButton(true);
             tbManager.SetProgressState(TaskbarProgressBarState.Normal);
             timer.Start();
 
@@ -616,7 +672,7 @@ namespace VkAudioWpf
 
         private void OnStatusNotReady()
         {
-            //label6.Text = "Стоп";
+            ChangePlayPauseIconInButton(false);
         }
         #endregion
 
@@ -837,9 +893,81 @@ namespace VkAudioWpf
         }
 
 
+        private void ChangePlayPauseIconInButton(bool play)
+        {
+            if(play)
+            {
+                Rectangle rect = new Rectangle();
+                rect.Width = 5;
+                rect.Height = 15;
+                rect.Fill = Brushes.White;
+                rect.Margin = new Thickness(-2, 0, 0, 0);
 
+                Rectangle rect1 = new Rectangle();
+                rect1.Margin = new Thickness(8, 0, 0, 0);
+                rect1.Width = 5;
+                rect1.Height = 15;
+                rect1.Fill = Brushes.White;
 
+                platPauseCanvas.Children.Clear();
+                platPauseCanvas.Children.Add(rect);
+                platPauseCanvas.Children.Add(rect1);
+            }
+            else
+            {
+                Polygon triangle = new Polygon();
+                triangle.Points.Add(new Point(0, 0));
+                triangle.Points.Add(new Point(16, 10));
+                triangle.Points.Add(new Point(0, 20));
+                triangle.Stroke = Brushes.Black;
+                triangle.Fill = Brushes.White;
+                triangle.Margin = new Thickness(0, -2, 0, 0);
 
+                platPauseCanvas.Children.Clear();
+                platPauseCanvas.Children.Add(triangle);
+
+            }
+        }
+
+        private void Window_Initialized(object sender, EventArgs e)
+        {
+            
+        }
+        
+
+        private void ToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (((ToggleButton)sender).IsChecked == true)
+                showInVk = true;
+            if (((ToggleButton)sender).IsChecked == false)
+                showInVk = false;
+        }
+
+        private double GetSize(string url)
+        {
+
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "HEAD";
+            HttpWebResponse resp = (HttpWebResponse)(req.GetResponse());
+            double ss = ((double)resp.ContentLength)/1000000;
+            req.Abort();
+            return ss;
+        }
+
+        private void DownloadFile(string url,string name)
+        {
+            new Thread(() =>
+                {
+                    string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + "\\Zeus\\";
+                        if (!Directory.Exists(path))
+                        {
+                            Directory.CreateDirectory(path);
+                        }
+                    WebClient wb = new WebClient();
+                    name.Replace("\"", "");
+                    wb.DownloadFile(new Uri(url), path+name+".mp3");
+                }).Start();
+        }
 
 
     }
