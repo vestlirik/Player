@@ -262,7 +262,7 @@
                                 <RowDefinition Height="Auto"></RowDefinition>
                             </Grid.RowDefinitions>
                             <Border x:Name="hover"
-                            Background="#99E7E7E7"
+                            Background="#FF007878"
                             BorderBrush="#99979797"
                             BorderThickness="1"
                             CornerRadius="3"
@@ -271,7 +271,7 @@
                             Visibility="Collapsed">
                             </Border>
                             <Border x:Name="highlight"
-                            Background="#99B0FFA5"
+                            Background="DarkSlateGray"
                             BorderBrush="#995CB74E"
                             BorderThickness="1"
                             CornerRadius="3"
@@ -298,6 +298,7 @@
                                 Property="Visibility"
                                 Value="Visible">
                                 </Setter>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
