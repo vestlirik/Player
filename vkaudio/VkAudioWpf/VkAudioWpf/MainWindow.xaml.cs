@@ -11,7 +11,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Hardcodet.Wpf.TaskbarNotification;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using Formms=System.Windows.Forms;
 using vkAudio;
@@ -24,6 +23,8 @@ using System.Windows.Interop;
 using System.Windows.Controls.Primitives;
 using System.Net;
 using System.IO;
+using System.Windows.Media.Animation;
+using System.Xml.Linq;
 
 namespace VkAudioWpf
 {
@@ -80,7 +81,7 @@ namespace VkAudioWpf
             //Attach the event handler of WMPengine
             player.StatusChanged += new Player.OnStatusUpdate(engine_StatusChanged);
 
-            //tulbar
+            //taskbar
             #region taskbar
             buttonPlayPause = new ThumbnailToolBarButton
                 (Properties.Resources.Hopstarter_Button_Button_Play, "Play");
@@ -110,6 +111,8 @@ namespace VkAudioWpf
             logInButton.Visibility = System.Windows.Visibility.Visible;
             logOutButton.Visibility = System.Windows.Visibility.Collapsed;
             usernameLabel.Visibility = System.Windows.Visibility.Collapsed;
+
+           
         }
 
         public bool ShowBroadcast
@@ -162,7 +165,7 @@ namespace VkAudioWpf
             var wih = new WindowInteropHelper(window);
             IntPtr hWnd = wih.Handle;
 
-
+            if (TaskbarManager.IsPlatformSupported)
             TaskbarManager.Instance.ThumbnailToolBars.AddButtons
                (hWnd, buttonPrevious, buttonPlayPause, buttonNext);
         }
@@ -205,123 +208,129 @@ namespace VkAudioWpf
                 await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { auth.UserId, auth.Token }));
 
                 tracksCountLabel.Content = playlist.Count()+" треків";
-                listBox.Items.Clear();
-                foreach (var elm in ((PlayListVk)playlist).GetTrackListVK())
-                {
-                    #region xaml listboxitem
-                    //<ListBoxItem Height="25px" HorizontalAlignment="Stretch" Margin="0,0,0,3">
-                    //            <Grid>
-                    //                <Grid.ColumnDefinitions>
-                    //                    <ColumnDefinition Width="410"/>
-                    //                    <ColumnDefinition Width="60"/>
-                    //                    <ColumnDefinition Width="70"/>
-                    //                    <ColumnDefinition Width="40"/>
-                    //                    <ColumnDefinition Width="70"/>
-                    //                    <ColumnDefinition Width="80"/>
-                    //                    <ColumnDefinition Width="40"/>
-                    //                </Grid.ColumnDefinitions>
-                    //                <Label Grid.Column="0" >Мері - Сестра</Label>
-                    //                <Label Grid.Column="1" >320 kbps</Label>
-                    //                <Label  Grid.Column="2">44 100 Hz</Label>
-                    //                <Label Grid.Column="3">4:09</Label>
-                    //                <Label Grid.Column="4">10,9 MB</Label>
-                    //                <Button Grid.Column="5" Style="{StaticResource roundedButton}">Скачати</Button>
-                    //                <Button Grid.Column="6"  Style="{StaticResource roundedButton}">X</Button>
-                    //            </Grid>
-                    //        </ListBoxItem> 
-                    #endregion
-                    ListBoxItem lstItem = new ListBoxItem();
-                    lstItem.Height = 30;
-                    lstItem.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
-                    lstItem.Margin = new Thickness(0, 0, 0, 3);
-                    lstItem.Style = this.FindResource("lstStyle") as Style;
 
-                    #region creating grid for listboxItem
-                    Grid grid = new Grid();
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(400) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(60) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(70) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(70) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(80) });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) }); 
-                    #endregion
-
-
-                    #region add elements in grid for listboxitem
-                    System.Windows.Controls.Label lbl = new System.Windows.Controls.Label();
-                    lbl.Content = elm.artist + " - " + elm.title;
-                    Grid.SetColumn(lbl, 0);
-                    grid.Children.Add(lbl);
-
-                    lbl = new System.Windows.Controls.Label();
-                    lbl.Content = "320" + " kbps";
-                    Grid.SetColumn(lbl, 1);
-                    grid.Children.Add(lbl);
-
-                    lbl = new System.Windows.Controls.Label();
-                    lbl.Content = "44100" + " Hz";
-                    Grid.SetColumn(lbl, 2);
-                    grid.Children.Add(lbl);
-
-                    lbl = new System.Windows.Controls.Label();
-                    lbl.Content = elm.DurationString;
-                    Grid.SetColumn(lbl, 3);
-                    grid.Children.Add(lbl);
-
-                    lbl = new System.Windows.Controls.Label();
-                    lbl.Name = "lbl"+listBox.Items.Count;
-
-                    lbl.MouseEnter += lbl_MouseEnter;
-                    //new Task((() =>
-                    //    {
-
-                    //        this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
-                    //        {
-
-                    //            lbl.Content = String.Format("{0:0.00}", GetSize(elm.GetLocation)) + " MB";
-
-                    //            return null;
-
-                    //        }), null);
-
-                    //    }
-
-
-                    //    )).Start();
-                    
-                    Grid.SetColumn(lbl, 4);
-                    grid.Children.Add(lbl);
-
-                    Button btn = new Button();
-                    btn.Style = this.FindResource("roundedButton") as Style;
-                    btn.Content = "Скачати";
-
-                    btn.Click += (object send, RoutedEventArgs ee) =>
-                    {
-                         DownloadFile(elm.GetLocation,elm.Name);
-                    };
-                       
-
-                    Grid.SetColumn(btn, 5);
-                    grid.Children.Add(btn);
-
-                    btn = new Button();
-                    btn.Style = this.FindResource("roundedButton") as Style;
-                    btn.Content = "X";
-                    Grid.SetColumn(btn, 6);
-                    grid.Children.Add(btn); 
-                    #endregion
-
-                    lstItem.Content = grid;
-
-                    lstItem.MouseDoubleClick += lstItem_MouseDoubleClick;
-                    lstItem.MouseEnter += lstItem_MouseEnter;
-
-                    listBox.Items.Add(lstItem);
-                }
-
+                FillListBox((PlayListVk)playlist);
                 
+            }
+        }
+
+        private void FillListBox(PlayListVk pls)
+        {
+            listBox.Items.Clear();
+            foreach (var elm in pls.GetTrackListVK())
+            {
+                #region xaml listboxitem
+                //<ListBoxItem Height="25px" HorizontalAlignment="Stretch" Margin="0,0,0,3">
+                //            <Grid>
+                //                <Grid.ColumnDefinitions>
+                //                    <ColumnDefinition Width="410"/>
+                //                    <ColumnDefinition Width="60"/>
+                //                    <ColumnDefinition Width="70"/>
+                //                    <ColumnDefinition Width="40"/>
+                //                    <ColumnDefinition Width="70"/>
+                //                    <ColumnDefinition Width="80"/>
+                //                    <ColumnDefinition Width="40"/>
+                //                </Grid.ColumnDefinitions>
+                //                <Label Grid.Column="0" >Мері - Сестра</Label>
+                //                <Label Grid.Column="1" >320 kbps</Label>
+                //                <Label  Grid.Column="2">44 100 Hz</Label>
+                //                <Label Grid.Column="3">4:09</Label>
+                //                <Label Grid.Column="4">10,9 MB</Label>
+                //                <Button Grid.Column="5" Style="{StaticResource roundedButton}">Скачати</Button>
+                //                <Button Grid.Column="6"  Style="{StaticResource roundedButton}">X</Button>
+                //            </Grid>
+                //        </ListBoxItem> 
+                #endregion
+                ListBoxItem lstItem = new ListBoxItem();
+                lstItem.Height = 30;
+                lstItem.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
+                lstItem.Margin = new Thickness(0, 0, 0, 3);
+                lstItem.Style = this.FindResource("lstStyle") as Style;
+
+                #region creating grid for listboxItem
+                Grid grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(400) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(60) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(70) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(70) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(80) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+                #endregion
+
+
+                #region add elements in grid for listboxitem
+                System.Windows.Controls.Label lbl = new System.Windows.Controls.Label();
+                lbl.Content = elm.artist + " - " + elm.title;
+                Grid.SetColumn(lbl, 0);
+                grid.Children.Add(lbl);
+
+                lbl = new System.Windows.Controls.Label();
+                lbl.Content = "320" + " kbps";
+                Grid.SetColumn(lbl, 1);
+                grid.Children.Add(lbl);
+
+                lbl = new System.Windows.Controls.Label();
+                lbl.Content = "44100" + " Hz";
+                Grid.SetColumn(lbl, 2);
+                grid.Children.Add(lbl);
+
+                lbl = new System.Windows.Controls.Label();
+                lbl.Content = elm.DurationString;
+                Grid.SetColumn(lbl, 3);
+                grid.Children.Add(lbl);
+
+                lbl = new System.Windows.Controls.Label();
+                lbl.Name = "lbl" + listBox.Items.Count;
+
+                //new Task((() =>
+                //    {
+
+                //        this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                //        {
+
+                //            lbl.Content = String.Format("{0:0.00}", GetSize(elm.GetLocation)) + " MB";
+
+                //            return null;
+
+                //        }), null);
+
+                //    }
+
+
+                //    )).Start();
+
+                Grid.SetColumn(lbl, 4);
+                grid.Children.Add(lbl);
+
+                Button btn = new Button();
+                btn.Style = this.FindResource("roundedButton") as Style;
+                btn.Content = "Скачати";
+
+                btn.Click += (object send, RoutedEventArgs ee) =>
+                {
+                    DownloadFile(elm.GetLocation, elm.Name);
+                };
+
+
+
+
+                Grid.SetColumn(btn, 5);
+                grid.Children.Add(btn);
+
+                btn = new Button();
+                btn.Style = this.FindResource("roundedButton") as Style;
+                btn.Content = "X";
+                Grid.SetColumn(btn, 6);
+                grid.Children.Add(btn);
+                #endregion
+
+                lstItem.Content = grid;
+
+                lstItem.MouseDoubleClick += lstItem_MouseDoubleClick;
+                //lstItem.MouseEnter += lstItem_MouseEnter;
+
+                listBox.Items.Add(lstItem);
             }
         }
                
@@ -488,13 +497,103 @@ namespace VkAudioWpf
 
             timer.Enabled = true;
 
-            this.headerLabel.Content = titleLabel.Content+" - Zeus";
+            this.headerLabel.Content = titleLabel.Content + " - Zeus";
+            this.Title = titleLabel.Content + " - Zeus";
 
             var tmpStr = titleLabel.Content.ToString();
             var str = tmpStr.Length > 64 ? tmpStr.Substring(0, 64) : tmpStr;
             //notifyIcon1.ShowBalloonTip(500, "Наступний трек", str, ToolTipIcon.Info);
 
             //SetTaskbarthumbnail();
+
+            GetAlbumArt(((AudioVK)currSong).artist, ((AudioVK)currSong).title);
+        }
+
+        private void GetAlbumArt(string artist, string title)
+        {
+            new Thread(() =>
+                {
+                    this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                    {
+
+                        pictureBox.Source = null;
+
+                        return null;
+
+                    }), null);
+
+                    try
+                    {
+                        string url = "http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=b7d62b44095bbe482030e12b4aa33572&artist=" + RemoveOtherSymbols(artist) + "&track=" + RemoveOtherSymbols(title);
+                    XDocument doc = XDocument.Load(url);
+
+                    var album = doc.Descendants("album");
+                    
+                        var image = album.Elements().ToArray()[6].Value;
+
+
+                        if (image != "")
+                        {                            
+                            this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                        {
+                            BitmapImage bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.UriSource = new Uri(image, UriKind.Absolute);
+                            bitmap.EndInit();
+
+                            pictureBox.Source = bitmap;
+
+                            return null;
+
+                        }), null);
+                        }
+                        return;
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            string url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&api_key=b7d62b44095bbe482030e12b4aa33572&artist=" + RemoveOtherSymbols(artist);
+                            XDocument doc = XDocument.Load(url);
+
+                            var album = doc.Descendants("artist");
+
+                            var image = album.Elements().ToArray()[6].Value;
+
+
+                            if (image != "")
+                            {
+                                this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                                {
+                                    BitmapImage bitmap = new BitmapImage();
+                                    bitmap.BeginInit();
+                                    bitmap.UriSource = new Uri(image, UriKind.Absolute);
+                                    bitmap.EndInit();
+
+                                    pictureBox.Source = bitmap;
+
+                                    return null;
+
+                                }), null);
+                            }
+                            return;
+                        }
+                        catch
+                        {
+                            this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                            {
+
+                                pictureBox.Source = null;
+
+                                return null;
+
+                            }), null);
+                        }
+                        
+                    }
+                    
+                }).Start();
+
 
         }
 
@@ -554,7 +653,7 @@ namespace VkAudioWpf
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            if (progressBar.Value == progressBar.Maximum)
+            if (progressBar.Value >= progressBar.Maximum - 2)
             {
                 if (checkBoxRepeat.IsChecked==true)
                     player.CurruntPosition = 0;
@@ -627,21 +726,18 @@ namespace VkAudioWpf
 
         private void OnStatusStopped()
         {
-            //label6.Text = "Стоп";
+            this.Title = "Zeus";
+            headerLabel.Content = "Zeus";
+            titleLabel.Content = "Author - Title";
             timer.Stop();
             progressBar.Value = progressBar.Maximum = 0;
-            //label2.Text = "";
-            //label3.Text = "";
-            //label4.Text = "";
-            //label5.Text = "";
-            //label7.Text = "";
-            //label8.Text = "";
+            
+
             if (TaskbarManager.IsPlatformSupported)
             {
                 TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
                 buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
             }
-            headerLabel.Content = "Стоп";
 
             ChangePlayPauseIconInButton(false);
         }
@@ -967,6 +1063,81 @@ namespace VkAudioWpf
                     name.Replace("\"", "");
                     wb.DownloadFile(new Uri(url), path+name+".mp3");
                 }).Start();
+        }
+
+        private void logOutButton_Click(object sender, RoutedEventArgs e)
+        {
+            auth.LogOut();
+
+            System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
+            Application.Current.Shutdown();
+        }
+
+        private void ToggleButton_Click_1(object sender, RoutedEventArgs e)
+        {
+            var currTrack=((PlayListVk)playlist).GetCurrentTrackVK();
+            string selTrack ="";
+            if(currTrack!=null)
+                selTrack = currTrack.aid;
+            if (reverseButton.IsChecked == true)
+            {
+                ((PlayListVk)playlist).ReverseOn();
+            }
+            else
+                ((PlayListVk)playlist).ReverseOff();
+            FillListBox((PlayListVk)playlist);
+            if(currTrack!=null)
+            {
+            ((PlayListVk)playlist).SelectTrackByAid(selTrack);
+            listBox.SelectedIndex = ((PlayListVk)playlist).SelTrack;
+            }
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (playlist != null)
+            {
+                var currTrack=((PlayListVk)playlist).GetCurrentTrackVK();
+                string selTrack="";
+            if(currTrack!=null)
+            selTrack = currTrack.aid;
+
+                if (sortCombobox.SelectedIndex == 0)
+                    ((PlayListVk)playlist).SortByDate();
+                else
+                    if (sortCombobox.SelectedIndex == 1)
+                        ((PlayListVk)playlist).SortByName();
+
+                FillListBox((PlayListVk)playlist);
+                if(currTrack!=null)
+            {
+                ((PlayListVk)playlist).SelectTrackByAid(selTrack);
+                listBox.SelectedIndex = ((PlayListVk)playlist).SelTrack;
+                }
+            }
+        }
+
+        private string RemoveOtherSymbols(string inputStr)
+        {
+            string outputStr = "";
+            for(int i=0;i<inputStr.Length;i++)
+            {
+                if (i+4<inputStr.Length && inputStr[i] == '&' && inputStr[i + 1] == 'a' && inputStr[i + 2] == 'm' && inputStr[i + 3] == 'p' && inputStr[i + 4] == ';')
+                {
+                    outputStr += inputStr[i];
+                    continue;
+                }
+                else
+                if (i-4>=0 && inputStr[i - 4] == '&' && inputStr[i - 3] == 'a' && inputStr[i - 2] == 'm' && inputStr[i - 1] == 'p' && inputStr[i] == ';')
+                {
+                    outputStr += inputStr[i];
+                    continue;
+                }
+                else
+                if (Char.IsLetterOrDigit(inputStr[i]) || Char.IsWhiteSpace(inputStr[i]))
+                    outputStr += inputStr[i];
+            }
+            return outputStr;
         }
 
 

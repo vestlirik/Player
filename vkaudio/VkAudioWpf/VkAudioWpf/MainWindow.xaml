@@ -262,7 +262,7 @@
                                 <RowDefinition Height="Auto"></RowDefinition>
                             </Grid.RowDefinitions>
                             <Border x:Name="hover"
-                            Background="#FF007878"
+                            Background="#99E7E7E7"
                             BorderBrush="#99979797"
                             BorderThickness="1"
                             CornerRadius="3"
@@ -271,7 +271,7 @@
                             Visibility="Collapsed">
                             </Border>
                             <Border x:Name="highlight"
-                            Background="DarkSlateGray"
+                            Background="#99B0FFA5"
                             BorderBrush="#995CB74E"
                             BorderThickness="1"
                             CornerRadius="3"
@@ -336,7 +336,7 @@
                         <ColumnDefinition Width="150px"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Image Grid.Column="0" OpacityMask="#FF79ACAC"></Image>
+                    <Image Grid.Column="0" OpacityMask="#FF79ACAC" x:Name="pictureBox"></Image>
                     <StackPanel Grid.Column="1">
                         <Label Padding="5px" x:Name="titleLabel">
                             Author - Title
@@ -383,7 +383,7 @@
                         </DockPanel>
                         <StackPanel Orientation="Horizontal">
                             <Label Name="startTime" HorizontalAlignment="Left" Content="0:00"/>
-                            <ProgressBar  Height="30px" Background="#FF082525" BorderBrush="#FF2D7A7A" Foreground="#FF007878" Margin="5px,0,5px,0px" Value="55" Width="570" x:Name="progressBar" MouseDown="progressBar_MouseDown"></ProgressBar>
+                            <ProgressBar  Height="30px" Background="#FF082525" BorderBrush="#FF2D7A7A" Foreground="#FF007878" Margin="5px,0,5px,0px" Value="55" Width="570" x:Name="progressBar" MouseDown="progressBar_MouseDown"/>
                             <Label Name="endTime" HorizontalAlignment="Right" Content="0:00"/>
                         </StackPanel>
                     </StackPanel>
@@ -401,13 +401,13 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource roundedButton}" x:Name="logInButton" Click="logInButton_Click" Height="30" VerticalAlignment="Top">Авторизуватися в VK</Button>
                             <Label x:Name="usernameLabel">Ваше ім'я</Label>
-                            <Button Style="{StaticResource roundedButton}" x:Name="logOutButton">Вийти</Button>
+                            <Button Style="{StaticResource roundedButton}" x:Name="logOutButton" Click="logOutButton_Click">Вийти</Button>
                             <Label x:Name="tracksCountLabel">0 треків</Label>
-                            <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True">
+                            <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" Name="sortCombobox">
                                 <ComboBoxItem>За датою додавання</ComboBoxItem>
                                 <ComboBoxItem>За назвою</ComboBoxItem>
                             </ComboBox>
-                            <Button  Style="{StaticResource roundedButton}">Z->A</Button>
+                            <ToggleButton  Style="{StaticResource toggle}" Name="reverseButton" Click="ToggleButton_Click_1">Z->A</ToggleButton>
                             <ToggleButton  Style="{StaticResource toggle}" IsChecked="True" Click="ToggleButton_Click">Транслювати в вк</ToggleButton>
                             <Button  Style="{StaticResource roundedButton}" Click="Button_Click_2">Поточний трек</Button>
                         </StackPanel>

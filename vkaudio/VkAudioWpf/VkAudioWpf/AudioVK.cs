@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace vkAudio
 {
-    public class AudioVK:Audio
+    public class AudioVK : Audio, IComparable<AudioVK>
     {
         private System.Xml.XmlNode xmlNode;
 
@@ -78,5 +78,11 @@ namespace vkAudio
         }
         public string lyrics_id { get; protected set; }
         public string genre_id { get; protected set; }
+
+        // Default comparer for Part type.
+        public int CompareTo(AudioVK compObj)
+        {
+            return String.Compare( this.Name , compObj.Name);
+        }
     }
 }

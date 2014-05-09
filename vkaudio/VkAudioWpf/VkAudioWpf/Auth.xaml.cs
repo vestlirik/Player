@@ -79,6 +79,19 @@ namespace VkAudioWpf
             return strResult;
         }
 
+        public void LogOut()
+        {
+            string[] Cookies = System.IO.Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Cookies));
+
+            foreach (string CookieFile in Cookies)
+                try
+                {
+                    System.IO.File.Delete(CookieFile);
+                }
+                catch { }
+
+        }
+
         
     }
 }

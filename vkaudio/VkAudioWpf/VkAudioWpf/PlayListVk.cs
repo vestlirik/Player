@@ -10,6 +10,8 @@ namespace vkAudio
     public class PlayListVk : PlayList
     {
         protected new List<AudioVK> tracks;
+        protected AudioVK[] tracksTMP;
+        bool reverse = false;
 
         public PlayListVk()
         {
@@ -96,6 +98,49 @@ namespace vkAudio
         internal string GetTrackN(int i)
         {
             return tracks[i].artist + " - " + tracks[i].title;
+        }
+
+        internal void SortByName()
+        {
+            tracksTMP = new AudioVK[tracks.Count];
+            tracks.CopyTo(tracksTMP);
+            tracks.Sort();
+            if (reverse)
+                tracks.Reverse();
+        }
+        internal void SortByDate()
+        {
+            if (tracksTMP != null)
+            {
+                tracks.Clear();
+                tracks.AddRange(tracksTMP);
+                tracksTMP = null;
+                if (reverse)
+                    tracks.Reverse();
+            }
+        }
+
+        internal void ReverseOn()
+        {
+            tracks.Reverse();
+            reverse = true;
+        }
+        internal void ReverseOff()
+        {
+            tracks.Reverse();
+            reverse = false;
+        }
+
+        internal void SelectTrackByAid(string selTrack)
+        {
+            for(int i=0;i<tracks.Count;i++)
+            {
+                if (String.Compare(tracks[i].aid, selTrack) == 0)
+                {
+                    this.SelTrack = i;
+                    break;
+                }
+            }
         }
     }
 }

@@ -62,14 +62,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vkAudio\vkAudio\bin\Debug\Bass.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Hardcodet.Wpf.TaskbarNotification">
-      <HintPath>..\..\..\..\..\..\Downloads\wpf-notifyicon\wpf-notifyicon\NotifyIconWpf\bin\Debug\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack">
-      <HintPath>..\..\vkAudio\vkAudio\bin\Debug\Microsoft.WindowsAPICodePack.dll</HintPath>
+      <HintPath>..\..\vkAudio\vkAudio\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack.Shell">
-      <HintPath>..\..\vkAudio\vkAudio\bin\Debug\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+      <HintPath>..\..\vkAudio\vkAudio\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -84,7 +81,7 @@
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="taglib-sharp">
-      <HintPath>..\..\vkAudio\vkAudio\bin\Debug\taglib-sharp.dll</HintPath>
+      <HintPath>..\..\vkAudio\vkAudio\taglib-sharp.dll</HintPath>
     </Reference>
     <Reference Include="UIAutomationProvider" />
     <Reference Include="WindowsBase" />
