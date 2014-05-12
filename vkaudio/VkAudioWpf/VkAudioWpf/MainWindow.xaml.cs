@@ -65,7 +65,6 @@ namespace VkAudioWpf
             timer.Tick+=timer_Tick;
 
             //this.Text = "Стоп";
-            auth = new Auth();
             player = new Player();
             this.Focus();
             lastInput = DateTime.Now;
@@ -201,6 +200,7 @@ namespace VkAudioWpf
         
         private async void logInButton_Click(object sender, RoutedEventArgs e)
         {
+            auth = new Auth();
             GetAuth();
             if (auth.IsAuth)
             {
