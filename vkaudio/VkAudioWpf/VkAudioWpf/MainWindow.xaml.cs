@@ -110,6 +110,7 @@ namespace VkAudioWpf
             logInButton.Visibility = System.Windows.Visibility.Visible;
             logOutButton.Visibility = System.Windows.Visibility.Collapsed;
             usernameLabel.Visibility = System.Windows.Visibility.Collapsed;
+            updateButton.Visibility = System.Windows.Visibility.Collapsed;
 
            
         }
@@ -188,6 +189,7 @@ namespace VkAudioWpf
                         usernameLabel.Content = el.ChildNodes[1].InnerText + " " + el.ChildNodes[2].InnerText;
                         logInButton.Visibility = System.Windows.Visibility.Collapsed;
                         usernameLabel.Visibility = System.Windows.Visibility.Visible;
+                        updateButton.Visibility = System.Windows.Visibility.Visible;
                         logOutButton.Visibility = System.Windows.Visibility.Visible;
                     }
                     catch
@@ -1124,12 +1126,18 @@ namespace VkAudioWpf
             {
                 if (i+4<inputStr.Length && inputStr[i] == '&' && inputStr[i + 1] == 'a' && inputStr[i + 2] == 'm' && inputStr[i + 3] == 'p' && inputStr[i + 4] == ';')
                 {
-                    outputStr += inputStr[i];
+                    if (i - 1 >= 0 && inputStr[i - 1] != ' ')
+                        outputStr += " "+ inputStr[i];
+                    else
+                        outputStr += inputStr[i];
                     continue;
                 }
                 else
                 if (i-4>=0 && inputStr[i - 4] == '&' && inputStr[i - 3] == 'a' && inputStr[i - 2] == 'm' && inputStr[i - 1] == 'p' && inputStr[i] == ';')
                 {
+                    if (i + 1 < inputStr.Length && inputStr[i + 1] != ' ')
+                        outputStr += inputStr[i] + " ";
+                    else
                     outputStr += inputStr[i];
                     continue;
                 }
@@ -1138,6 +1146,29 @@ namespace VkAudioWpf
                     outputStr += inputStr[i];
             }
             return outputStr;
+        }
+
+        private async void updateButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+                    var currTrack = ((PlayListVk)playlist).GetCurrentTrackVK();
+                    string selTrack = "";
+                    if (currTrack != null)
+                        selTrack = currTrack.aid;
+                    listBox.Items.Clear();
+                    tracksCountLabel.Content = "0 треків";
+                    playlist = new PlayListVk();
+                    await Task.Factory.StartNew(()=> playlist.DownloadTracks(new string[] { auth.UserId, auth.Token }));
+
+                    tracksCountLabel.Content = playlist.Count() + " треків";
+
+                    FillListBox((PlayListVk)playlist);
+                    if (currTrack != null)
+                    {
+                        ((PlayListVk)playlist).SelectTrackByAid(selTrack);
+                        listBox.SelectedIndex = ((PlayListVk)playlist).SelTrack;
+                    }
+
         }
 
 
