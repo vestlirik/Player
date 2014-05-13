@@ -115,7 +115,7 @@
           Background="DarkSlateGray"
           BorderBrush="DarkSlateGray"
           BorderThickness="1" />
-                              <Path 
+                <Path 
           x:Name="Arrow"
           Grid.Column="1"     
           Fill="White" 
@@ -341,9 +341,8 @@
                         <Label Padding="5px" x:Name="titleLabel">
                             Author - Title
                         </Label>
-                        <Label Padding="5px" x:Name="songDataLabel">
-                            320 kbps      44 100 Hz
-                        </Label>
+                        <Label HorizontalAlignment="Right" Margin="0,0,80,-5" FontSize="10" Width="49" VerticalContentAlignment="Stretch"  Content="volume"/>
+                        <ProgressBar Height="15" Width="200" HorizontalAlignment="Right" Margin="0,0,10,0" Name="volumeBar" Value="100" MouseDown="volumeBar_MouseDown" MouseWheel="volumeBar_MouseWheel" MouseMove="volumeBar_MouseMove"></ProgressBar>
                         <DockPanel Margin="5px" Width="auto">
                             <Button Style="{StaticResource roundedButton}" Height="50px" Width="50px" x:Name="prevButton" Click="prevButton_Click">
                                 <Canvas Margin="-15px,-10px,0,0">
@@ -379,7 +378,7 @@
                             <ToggleButton  Style="{StaticResource toggle}"  HorizontalAlignment="Right" DockPanel.Dock="Right"  Height="50px" Width="50px"  x:Name="checkBoxRepeat">
                                 RE
                             </ToggleButton>
-                            
+
                         </DockPanel>
                         <StackPanel Orientation="Horizontal">
                             <Label Name="startTime" HorizontalAlignment="Left" Content="0:00"/>
@@ -401,9 +400,9 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource roundedButton}" x:Name="logInButton" Click="logInButton_Click" Height="30" VerticalAlignment="Top">Авторизуватися в VK</Button>
                             <Label x:Name="usernameLabel">Ваше ім'я</Label>
-                            
+
                             <Button Style="{StaticResource roundedButton}" x:Name="updateButton" Click="updateButton_Click">Оновити</Button>
-                            
+
                             <Button Style="{StaticResource roundedButton}" x:Name="logOutButton" Click="logOutButton_Click">Вийти</Button>
                             <Label x:Name="tracksCountLabel">0 треків</Label>
                             <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" Name="sortCombobox">

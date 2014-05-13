@@ -143,6 +143,7 @@ namespace VkAudioWpf
 
         private void Exit(object sender, RoutedEventArgs e)
         {
+            if(auth!=null)
             auth.Close();
             Close();
             
@@ -219,7 +220,6 @@ namespace VkAudioWpf
         private void FillListBox(PlayListVk pls)
         {
             listBox.Items.Clear();
-            int i = 0;
             foreach (var elm in pls.GetTrackListVK())
             {
                 #region xaml listboxitem
@@ -502,7 +502,7 @@ namespace VkAudioWpf
                 progressBar.Maximum = int.Parse(((AudioVK)currSong).duration);
                 endTime.Content = ((AudioVK)currSong).DurationString;
             }
-            songDataLabel.Content = player.Bitrate(currSong.GetLocation) + " КБ/с  " + player.Fraquency(currSong.GetLocation) + " KHz";
+            //songDataLabel.Content = player.Bitrate(currSong.GetLocation) + " КБ/с  " + player.Fraquency(currSong.GetLocation) + " KHz";
 
             timer.Enabled = true;
 
@@ -662,7 +662,7 @@ namespace VkAudioWpf
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            if (progressBar.Value >= progressBar.Maximum - 2)
+            if (progressBar.Value >= progressBar.Maximum - 1)
             {
                 if (checkBoxRepeat.IsChecked==true)
                     player.CurruntPosition = 0;
@@ -994,6 +994,7 @@ namespace VkAudioWpf
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if(auth!=null)
             auth.Close();
         }
 
@@ -1188,6 +1189,42 @@ namespace VkAudioWpf
 
         }
 
+
+        private void volumeBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ChangeVolume((int)e.GetPosition(volumeBar).X);
+        }
+
+        private void volumeBar_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta < 0)
+            {
+                volumeBar.Value -= 3;
+            }
+            else
+                volumeBar.Value += 3;
+
+            player.ChangeVolume(volumeBar.Value / 100);
+        }
+
+        private void volumeBar_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+                ChangeVolume((int)e.GetPosition(volumeBar).X);
+        }
+
+        private void ChangeVolume(int x)
+        {
+            double dblValue;
+            int point = x;
+            dblValue = (point / (double)volumeBar.ActualWidth);
+
+            volumeBar.Value = (int)((point / (double)volumeBar.ActualWidth) * 100);
+
+
+            player.ChangeVolume(volumeBar.Value/100);
+
+        }
 
     }
 }

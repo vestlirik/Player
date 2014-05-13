@@ -256,5 +256,11 @@ namespace vkAudio
                 ToArray());
         }
 
+
+        internal void ChangeVolume(double p)
+        {
+
+            Bass.BASS_ChannelSetAttribute(stream, BASSAttribute.BASS_ATTRIB_VOL, (float)p);
+        }
     }
 }
