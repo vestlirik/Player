@@ -80,9 +80,17 @@ namespace vkAudio
             tracks.RemoveAt(selIndex);
         }
 
-        public override void RemoveFile(int selIndex)
+        public void RemoveFile(int index, string owner, string token)
         {
-            throw new NotImplementedException();
+            
+            Uri uri = new Uri("https://api.vk.com/method/audio.delete.xml?audio_id=" + tracks[index].aid + "&owner_id=" + owner + "&access_token=" + token);
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+
+            tracks.RemoveAt(index);
+
+            if (index < SelTrack)
+                SelTrack--;
         }
 
 

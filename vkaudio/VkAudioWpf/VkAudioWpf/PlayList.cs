@@ -45,6 +45,5 @@ namespace vkAudio
         public abstract List<string> GetTrackList();
 
         public abstract void Remove(int selIndex);
-        public abstract void RemoveFile(int selIndex);
     }
 }

@@ -75,7 +75,7 @@ namespace vkAudio
             tracks.RemoveAt(selIndex);
         }
 
-        public override void RemoveFile(int selIndex)
+        public  void RemoveFile(int selIndex)
         {
             var obj = tracks[selIndex];
             var file = new FileInfo(obj.GetLocation);

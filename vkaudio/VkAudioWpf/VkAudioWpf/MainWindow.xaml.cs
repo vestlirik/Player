@@ -219,6 +219,7 @@ namespace VkAudioWpf
         private void FillListBox(PlayListVk pls)
         {
             listBox.Items.Clear();
+            int i = 0;
             foreach (var elm in pls.GetTrackListVK())
             {
                 #region xaml listboxitem
@@ -314,15 +315,18 @@ namespace VkAudioWpf
                     DownloadFile(elm.GetLocation, elm.Name);
                 };
 
-
-
-
                 Grid.SetColumn(btn, 5);
                 grid.Children.Add(btn);
 
                 btn = new Button();
                 btn.Style = this.FindResource("roundedButton") as Style;
                 btn.Content = "X";
+
+                btn.Click += (object send, RoutedEventArgs ee) =>
+                {
+                    DeleteTrack(listBox.Items.IndexOf(lstItem));
+                };
+
                 Grid.SetColumn(btn, 6);
                 grid.Children.Add(btn);
                 #endregion
@@ -333,8 +337,11 @@ namespace VkAudioWpf
                 //lstItem.MouseEnter += lstItem_MouseEnter;
 
                 listBox.Items.Add(lstItem);
+
             }
         }
+
+        
                
         void lstItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -914,9 +921,27 @@ namespace VkAudioWpf
             searchBox.Focus();
         }
 
+        private void DeleteTrack(int index)
+        {
+            bool b = playlist.SelTrack == index;
+            var res = Formms.MessageBox.Show("Видалення файлу", "Точно видалити файл?", Formms.MessageBoxButtons.YesNo, Formms.MessageBoxIcon.Question,
+    Formms.MessageBoxDefaultButton.Button2);
+            if (res == Formms.DialogResult.Yes)
+            {
+                ((PlayListVk)playlist).RemoveFile(index, auth.UserId, auth.Token);
+
+                listBox.Items.RemoveAt(index);
+
+                tracksCountLabel.Content = playlist.Count() + " треків";
+                if (b)
+                    PlayTrack();
+            }
+
+        }
+
         private void listBox_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Delete && e.Key.ToString() != "Delete, Shift")
+            if (e.Key == Key.Delete && Keyboard.Modifiers != ModifierKeys.Shift)
             {
                 int selIndex = listBox.SelectedIndex;
                 playlist.Remove(selIndex);
@@ -930,18 +955,11 @@ namespace VkAudioWpf
                 }
                 listBox.SelectedIndex = selIndex;
             }
-            if (e.Key.ToString() == "Delete, Shift")
+            if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.Shift)
             {
-                var res = Formms.MessageBox.Show("Видалення файлу", "Точно видалити назавжди файл?", Formms.MessageBoxButtons.YesNo);
-                if (res == Formms.DialogResult.Yes)
-                {
                     int selIndex = listBox.SelectedIndex;
-                    if (playlist.SelTrack == selIndex)
-                    {
-                        player.Stop();
-                    }
-                    playlist.RemoveFile(selIndex);
-                    listBox.Items.RemoveAt(selIndex);
+
+                    DeleteTrack(selIndex);
 
 
                     if (playlist.SelTrack == selIndex)
@@ -957,7 +975,6 @@ namespace VkAudioWpf
                     if (selIndex < playlist.SelTrack)
                         playlist.SelTrack--;
                     listBox.SelectedIndex = selIndex;
-                }
             }
         }
 
