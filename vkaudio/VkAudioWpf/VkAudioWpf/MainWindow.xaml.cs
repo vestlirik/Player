@@ -620,6 +620,10 @@ namespace VkAudioWpf
                 short res1 = GetAsyncKeyState(VK_MEDIA_PLAY_PAUSE);
                 short res2 = GetAsyncKeyState(VK_MEDIA_PREV_TRACK);
                 short res3 = GetAsyncKeyState(VK_MEDIA_NEXT_TRACK);
+                short res4 = GetAsyncKeyState(VK_MEDIA_STOP);
+                short res5 = GetAsyncKeyState(VK_VOLUME_MUTE);
+                short res6 = GetAsyncKeyState(VK_VOLUME_DOWN);
+                short res7 = GetAsyncKeyState(VK_VOLUME_UP);
 
                 //время в мс между нажатиями горячих кнопок
                 int keyPause = 200;
@@ -629,6 +633,7 @@ namespace VkAudioWpf
                     {
                         PlayPauseButton();
                         lastInput = DateTime.Now;
+                        return;
                     }));
                 else
                     if (res2 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
@@ -636,6 +641,7 @@ namespace VkAudioWpf
                         {
                             PrevTrack();
                             lastInput = DateTime.Now;
+                            return;
                         }));
                     else
                         if (res3 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
@@ -643,10 +649,47 @@ namespace VkAudioWpf
                             {
                                 NextTrack();
                                 lastInput = DateTime.Now;
+                                return;
                             }));
+                        else
+                            if (res4 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
+                                App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
+                                {
+                                    player.Stop();
+                                    lastInput = DateTime.Now;
+                                    return;
+                                }));
+                            //else
+                            //    if (res5 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
+                            //        App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
+                            //        {
+                            //            Mute();
+                            //            lastInput = DateTime.Now;
+                            //            return;
+                            //        }));
+                            //    else
+                            //        if (res6 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
+                            //            App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
+                            //            {
+                            //                volumeBar.Value -= 3;
+                            //                player.ChangeVolume(volumeBar.Value / 100);
+                            //                lastInput = DateTime.Now;
+                            //                return;
+                            //            }));
+                            //        else
+                            //            if (res7 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
+                            //                App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
+                            //                {
+                            //                    volumeBar.Value += 3;
+                            //                    player.ChangeVolume(volumeBar.Value / 100);
+                            //                    lastInput = DateTime.Now;
+                            //                    return;
+                            //                }));
                 Thread.Sleep(50);
             }
         }
+
+       
 
         public const int VK_VOLUME_MUTE = 0xAD;
         public const int VK_VOLUME_DOWN = 0xAE;
@@ -688,6 +731,13 @@ namespace VkAudioWpf
             }
 
         }
+
+
+        private void Mute()
+        {
+            player.Mute();
+        }
+
 
         private void progressBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -1224,6 +1274,18 @@ namespace VkAudioWpf
 
             player.ChangeVolume(volumeBar.Value/100);
 
+        }
+        
+        private void playlistButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (playlistButton.IsChecked == true)
+            {
+                this.Height = 600;
+            }
+            if (playlistButton.IsChecked == false)
+            {
+                this.Height = 190;
+            }
         }
 
     }

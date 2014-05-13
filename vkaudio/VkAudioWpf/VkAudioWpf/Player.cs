@@ -35,6 +35,8 @@ namespace vkAudio
         //Event for clients to subscribe to, if they want to get notfied.
         public event OnStatusUpdate StatusChanged;
 
+        private float volumeState = 1f;
+
 
         public Player()
         {
@@ -85,6 +87,7 @@ namespace vkAudio
             if (curStatus != PLAYER_STATUS.PLAYER_STATUS_PLAYING)
             {
                 Bass.BASS_ChannelPlay(stream, false);
+                ChangeVolume(volumeState);
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_PLAYING);
             }
         }
@@ -261,6 +264,28 @@ namespace vkAudio
         {
 
             Bass.BASS_ChannelSetAttribute(stream, BASSAttribute.BASS_ATTRIB_VOL, (float)p);
+            volumeState = (float)p;
         }
+
+
+        bool mute = false;
+        float prevVolumeLevel = 0;
+
+        internal void Mute()
+        {
+ 	        if(!mute)
+            {
+                prevVolumeLevel = volumeState;
+                volumeState = 0f;
+                mute = true;
+            }
+            else
+            {
+                volumeState = prevVolumeLevel;
+                mute = false;
+            }
+        }
+
+    
     }
 }
