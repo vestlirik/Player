@@ -25,6 +25,10 @@ using System.Net;
 using System.IO;
 using System.Windows.Media.Animation;
 using System.Xml.Linq;
+using System.Security.Cryptography;
+using System.Web;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace VkAudioWpf
 {
@@ -36,6 +40,7 @@ namespace VkAudioWpf
 
         //форма авторизации
         Auth auth;
+        Settings sett;
 
         Player player;
         PlayList playlist;
@@ -112,7 +117,37 @@ namespace VkAudioWpf
             usernameLabel.Visibility = System.Windows.Visibility.Collapsed;
             updateButton.Visibility = System.Windows.Visibility.Collapsed;
 
-           
+            sett = new Settings();
+            ReadSettings();
+
+            logInButton_Click(new object(), new RoutedEventArgs());
+            if(sett.LastSessionKey!="")
+            logInLastButton_Click(new object(), new RoutedEventArgs());
+        }
+
+        private void ReadSettings()
+        {
+            try
+            {
+                using (FileStream fileStream = new FileStream("sett.bin", FileMode.Open))
+                {
+                    IFormatter bf = new BinaryFormatter();
+                    sett = (Settings)bf.Deserialize(fileStream);
+                }
+            }
+            catch
+            {
+                sett.UserId = "";
+                sett.VKToken = "";
+            }
+        }
+        private void SaveSettings()
+        {
+            using (FileStream fileStream = new FileStream("sett.bin", FileMode.Create))
+            {
+                IFormatter bf = new BinaryFormatter();
+                bf.Serialize(fileStream, sett);
+            }
         }
 
         public bool ShowBroadcast
@@ -143,8 +178,9 @@ namespace VkAudioWpf
 
         private void Exit(object sender, RoutedEventArgs e)
         {
-            if(auth!=null)
-            auth.Close();
+            if (auth != null)
+                auth.Close();
+            SaveSettings();
             Close();
             
         }
@@ -173,18 +209,23 @@ namespace VkAudioWpf
 
         private void GetAuth()
         {
-            if (!auth.IsAuth)
+            if (sett.VKToken=="")
             {
                 ////Авторизация в вк
+
+                auth = new Auth();
                 auth.ShowDialog();
+                sett.VKToken = auth.Token;
+                sett.UserId = auth.UserId;
+                auth.Close();
             }
-                if (auth.IsAuth)
+            if (sett.VKToken != "")
                 {
                     try
                     {
                         ////загрузка данных о профиле
                         XmlDocument x = new XmlDocument();
-                        x.Load("https://api.vk.com/method/getProfiles.xml?uid=" + auth.UserId + "&access_token=" + auth.Token);
+                        x.Load("https://api.vk.com/method/getProfiles.xml?uid=" + sett.UserId + "&access_token=" + sett.VKToken);
                         // Парсим
                         var el = x.GetElementsByTagName("user")[0];
                         usernameLabel.Content = el.ChildNodes[1].InnerText + " " + el.ChildNodes[2].InnerText;
@@ -203,12 +244,11 @@ namespace VkAudioWpf
         
         private async void logInButton_Click(object sender, RoutedEventArgs e)
         {
-            auth = new Auth();
             GetAuth();
-            if (auth.IsAuth)
+            if (sett.VKToken != "")
             {
                 playlist = new PlayListVk();
-                await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { auth.UserId, auth.Token }));
+                await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { sett.UserId, sett.VKToken }));
 
                 tracksCountLabel.Content = playlist.Count()+" треків";
 
@@ -473,7 +513,35 @@ namespace VkAudioWpf
                 //set status
                 var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
                 if(ShowBroadcast)
-                ((PlayListVk)playlist).SetStatus(audioId, auth.Token);
+                ((PlayListVk)playlist).SetStatus(audioId, sett.VKToken);
+                //scrobble
+
+                try
+                {
+                    ScrobbleTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
+                    LastUpdateNowTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
+                }
+                catch (Exception ex)
+                {
+                    //System.Windows.Forms.MessageBox.Show("Не заскроблило" + ex.InnerException);
+
+                }
+                //var song=((AudioVK)currSong);
+                //Lpfm.LastFmScrobbler.Scrobbler scr = new Lpfm.LastFmScrobbler.Scrobbler(ApiKey, mySecret, sessionKey);
+                //Lpfm.LastFmScrobbler.Track tr=new Lpfm.LastFmScrobbler.Track();
+                //tr.Duration = TimeSpan.FromSeconds(double.Parse(song.duration));
+                //tr.ArtistName =  song.artist;
+                //tr.TrackName = song.title;
+                //tr.WhenStartedPlaying=DateTime.UtcNow;
+                //try
+                //{
+                //    scr.Scrobble(tr);
+                //    scr.NowPlaying(tr);
+                //}
+                //catch(Exception ex)
+                //{
+                //    System.Windows.Forms.MessageBox.Show(ex.InnerException+"");
+                //}
             }
 
 
@@ -487,8 +555,8 @@ namespace VkAudioWpf
             player.Play();
 
 
-            titleLabel.Content = player.GetName(currSong.GetLocation);
-            if (titleLabel.Content.ToString().Trim() == "")
+            //titleLabel.Content = player.GetName(currSong.GetLocation);
+            //if (titleLabel.Content.ToString().Trim() == "")
                 titleLabel.Content = currSong.Name;
 
             progressBar.Minimum = 0;
@@ -978,7 +1046,7 @@ namespace VkAudioWpf
     Formms.MessageBoxDefaultButton.Button2);
             if (res == Formms.DialogResult.Yes)
             {
-                ((PlayListVk)playlist).RemoveFile(index, auth.UserId, auth.Token);
+                ((PlayListVk)playlist).RemoveFile(index, sett.UserId, sett.VKToken);
 
                 listBox.Items.RemoveAt(index);
 
@@ -1044,8 +1112,7 @@ namespace VkAudioWpf
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if(auth!=null)
-            auth.Close();
+            SaveSettings();
         }
 
         private void listBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1138,6 +1205,8 @@ namespace VkAudioWpf
         private void logOutButton_Click(object sender, RoutedEventArgs e)
         {
             auth.LogOut();
+            sett.VKToken = "";
+            sett.UserId = "";
 
             System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
             Application.Current.Shutdown();
@@ -1226,7 +1295,7 @@ namespace VkAudioWpf
                     listBox.Items.Clear();
                     tracksCountLabel.Content = "0 треків";
                     playlist = new PlayListVk();
-                    await Task.Factory.StartNew(()=> playlist.DownloadTracks(new string[] { auth.UserId, auth.Token }));
+                    await Task.Factory.StartNew(()=> playlist.DownloadTracks(new string[] { sett.UserId, sett.VKToken }));
 
                     tracksCountLabel.Content = playlist.Count() + " треків";
 
@@ -1287,6 +1356,273 @@ namespace VkAudioWpf
                 this.Height = 190;
             }
         }
+
+        private void logInLastButton_Click(object sender, RoutedEventArgs e)
+        {
+            //authLast = new AuthLast();
+            if(sett.LastSessionKey=="")
+            GetAuthLast();
+            //if (auth.IsAuth)
+            //{
+            //    playlist = new PlayListVk();
+            //    await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { auth.UserId, auth.Token }));
+
+            //    tracksCountLabel.Content = playlist.Count() + " треків";
+
+            //    FillListBox((PlayListVk)playlist);
+
+            //}
+        }
+
+
+        string ApiKey = "b7d62b44095bbe482030e12b4aa33572";
+        string mySecret = "dd068a460a815ca350b125d3ae388e42";
+        private void GetAuthLast()
+        {
+            // создаём объект HttpWebRequest через статический метод Create класса WebRequest, явно приводим результат к HttpWebRequest. В параметрах указываем страницу, которая указана в API, в качестве параметров - method=auth.gettoken и наш API Key
+            
+
+            HttpWebRequest tokenRequest = (HttpWebRequest)WebRequest.Create("http://ws.audioscrobbler.com/2.0/?method=auth.gettoken&api_key=" + ApiKey);
+
+            // получаем ответ сервера
+            HttpWebResponse tokenResponse = (HttpWebResponse)tokenRequest.GetResponse();
+
+            // и полностью считываем его в строку
+            string tokenResult = new StreamReader(tokenResponse.GetResponseStream(), Encoding.UTF8).ReadToEnd();
+
+            // извлекаем то, что нам нужно. Можно сделать и через парсинг XML (видимо, я о нём ещё не знал в тот момент, когда писал этот код).
+            string token = String.Empty;
+            for (int i = tokenResult.IndexOf("<token>") + 7; i < tokenResult.IndexOf("</token"); i++)
+            {
+                token += tokenResult[i];
+            }
+
+            // запускаем в браузере по умолчанию страницу http://www.last.fm/api/auth/ c параметрами API Key и только что полученным токеном)
+            Process s = Process.Start("http://www.last.fm/api/auth/?api_key=" + ApiKey + "&token=" + token);
+
+            // запускается страница, где у пользователя спрашивается, можно ли разрешить данному приложению доступ к профилю.
+
+            // ждём подтверждения от пользователя
+            System.Windows.Forms.DialogResult d = System.Windows.Forms.MessageBox.Show("Вы подтвердили доступ?", "Подтверждение", System.Windows.Forms.MessageBoxButtons.OKCancel, System.Windows.Forms.MessageBoxIcon.Question);
+
+            // если пользователь дал согласие
+            if (d == System.Windows.Forms.DialogResult.OK)
+            {
+                // создаём сигнатуру для получения сессии (указываем API Key, метод, токен и наш секретный ключ, всё это без символов '&' и '='
+                string tmp = "api_key" + ApiKey + "methodauth.getsessiontoken" + token + mySecret;
+
+                // хешируем это алгоритмом MD5 (думаю, у вас не будет проблем найти его в Интернете)
+                string sig = GetMD5(tmp);
+
+                // получаем сессию похожим способом
+                HttpWebRequest sessionRequest = (HttpWebRequest)WebRequest.Create("http://ws.audioscrobbler.com/2.0/?method=auth.getsession&token=" + token + "&api_key=" + ApiKey + "&api_sig=" + sig);
+                // уже не помню, зачем это свойство выставлять в true, но это обязательно. Зачем-то им нужно перенаправление.
+                sessionRequest.AllowAutoRedirect = true;
+
+                // получаем ответ
+                HttpWebResponse sessionResponse = (HttpWebResponse)sessionRequest.GetResponse();
+                string sessionResult = new StreamReader(sessionResponse.GetResponseStream(),
+                                               Encoding.UTF8).ReadToEnd();
+
+                // извлечение сессии (опять же проще использовать XML парсер)
+                for (int i = sessionResult.IndexOf("<key>") + 5; i < sessionResult.IndexOf("</key>"); i++)
+                {
+                    sett.LastSessionKey += sessionResult[i];
+                }
+            }
+        }
+
+        private string GetMD5(string input)
+        {
+            // создаем объект этого класса. Отмечу, что он создается не через new, а вызовом метода Create
+            MD5 md5Hasher = MD5.Create();
+
+            // Преобразуем входную строку в массив байт и вычисляем хэш
+            byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(input));
+
+            // Создаем новый Stringbuilder (Изменяемую строку) для набора байт
+            StringBuilder sBuilder = new StringBuilder();
+
+            // Преобразуем каждый байт хэша в шестнадцатеричную строку
+            for (int i = 0; i < data.Length; i++)
+            {
+                //указывает, что нужно преобразовать элемент в шестнадцатиричную строку длиной в два символа
+                sBuilder.Append(data[i].ToString("x2"));
+            }
+
+            return sBuilder.ToString();
+        }
+
+        private void ScrobbleTrack(string track, string artist)
+        {
+            track = RemoveOtherSymbols(track);
+            artist = RemoveOtherSymbols(artist);
+            // узнаем UNIX-время для текущего момента
+            TimeSpan rtime = DateTime.Now - (new DateTime(1970, 1, 1, 0, 0, 0));
+            TimeSpan t1 = new TimeSpan(3, 0, 0);
+            rtime -= t1; // вычитаем три часа, чтобы не было несоответствия из-за разницы в часовых поясах
+            // получаем количество секунд
+            int timestamp = (int)rtime.TotalSeconds;
+
+            // формируем строку запроса
+            string submissionReqString = String.Empty;
+
+            //добавляем параметры (указываем метод, сессию и API Key):
+            submissionReqString += "method=track.scrobble&sk=" + sett.LastSessionKey + "&api_key=" + ApiKey;
+
+            //добавляем только обязательную информацию о треке (исполнитель, трек, время прослушивания, альбом), кодируя их с помощью статического метода UrlEncode класса HttpUtility.
+            submissionReqString += "&artist=" + HttpUtility.UrlEncode(artist);
+            submissionReqString += "&track=" + HttpUtility.UrlEncode(track);
+            submissionReqString += "&timestamp=" + timestamp.ToString(); // в этой строке не должно быть пробела между & и t. Просто почему-то Хабр неправильно отображает этот участок, если пробел убрать.
+            //submissionReqString += "&album=" + HttpUtility.UrlEncode(album);
+
+            // формируем сигнатуру (параметры должны записываться сплошняком (без символов '&' и '=' и в алфавитном порядке):
+            string signature = String.Empty;
+
+            // сначала добавляем альбом
+            //signature += "album" + album;
+
+            // потом API Key
+            signature += "api_key" + ApiKey;
+
+            // исполнитель		   
+            signature += "artist" + artist;
+
+            // метод и ключ сессии
+            signature += "methodtrack.scrobblesk" + sett.LastSessionKey;
+
+            // время
+            signature += "timestamp" + timestamp;
+
+            // имя трека
+            signature += "track" + track;
+
+            // добавляем секретный код в конец
+            signature += mySecret;
+
+            // добавляем сформированную и захешированную MD5 сигнатуру к строке запроса
+            submissionReqString += "&api_sig=" + GetMD5(signature);
+
+            // и на этот раз делаем POST запрос на нужную страницу
+            HttpWebRequest submissionRequest = (HttpWebRequest)WebRequest.Create("http://ws.audioscrobbler.com/2.0/"); // адрес запроса без параметров
+
+            // очень важная строка. Долго я мучался, пока не выяснил, что она обязательно должна быть
+            submissionRequest.ServicePoint.Expect100Continue = false;
+
+            // Настраиваем параметры запроса
+            submissionRequest.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36";
+            // Указываем метод отправки данных скрипту, в случае с POST обязательно
+            submissionRequest.Method = "POST";
+            // В случае с POST обязательная строка
+            submissionRequest.ContentType = "application/x-www-form-urlencoded";
+
+            // ставим таймаут, чтобы программа не повисла при неудаче обращения к серверу, а выкинула Exception
+            submissionRequest.Timeout = 6000;
+
+            // Преобразуем данные в соответствующую кодировку, получаем массив байтов из строки с параметрами (UTF8 обязательно)
+            byte[] EncodedPostParams = Encoding.UTF8.GetBytes(submissionReqString);
+            submissionRequest.ContentLength = EncodedPostParams.Length;
+
+            // Записываем данные в поток запроса (массив байтов, откуда начинаем, сколько записываем)
+            submissionRequest.GetRequestStream().Write(EncodedPostParams, 0, EncodedPostParams.Length);
+            // закрываем поток
+            submissionRequest.GetRequestStream().Close();
+
+            // получаем ответ сервера
+            HttpWebResponse submissionResponse = (HttpWebResponse)submissionRequest.GetResponse();
+
+            // считываем поток ответа
+            string submissionResult = new StreamReader(submissionResponse.GetResponseStream(), Encoding.UTF8).ReadToEnd();
+            // разбор полётов. Если ответ не содержит status="ok", то дело плохо, выкидываем Exception и где-нибудь ловим его.
+            if (!submissionResult.Contains("status=\"ok\""))
+                throw new Exception("Треки не отправлены! Причина - " + submissionResult);
+
+            // иначе всё хорошо, выходим из метода и оповещаем пользователя, что трек заскробблен.
+        }
+        private void LastUpdateNowTrack(string track, string artist)
+        {
+            track = RemoveOtherSymbols(track);
+            artist = RemoveOtherSymbols(artist);
+            // узнаем UNIX-время для текущего момента
+            TimeSpan rtime = DateTime.Now - (new DateTime(1970, 1, 1, 0, 0, 0));
+            TimeSpan t1 = new TimeSpan(3, 0, 0);
+            rtime -= t1; // вычитаем три часа, чтобы не было несоответствия из-за разницы в часовых поясах
+            // получаем количество секунд
+            int timestamp = (int)rtime.TotalSeconds;
+
+            // формируем строку запроса
+            string submissionReqString = String.Empty;
+
+            //добавляем параметры (указываем метод, сессию и API Key):
+            submissionReqString += "method=track.updateNowPlaying&sk=" + sett.LastSessionKey + "&api_key=" + ApiKey;
+
+            //добавляем только обязательную информацию о треке (исполнитель, трек, время прослушивания, альбом), кодируя их с помощью статического метода UrlEncode класса HttpUtility.
+            submissionReqString += "&artist=" + HttpUtility.UrlEncode(artist, System.Text.Encoding.UTF8);
+            submissionReqString += "&track=" + HttpUtility.UrlEncode(track, System.Text.Encoding.UTF8); // в этой строке не должно быть пробела между & и t. Просто почему-то Хабр неправильно отображает этот участок, если пробел убрать.
+            //submissionReqString += "&album=" + HttpUtility.UrlEncode(album);
+
+            // формируем сигнатуру (параметры должны записываться сплошняком (без символов '&' и '=' и в алфавитном порядке):
+            string signature = String.Empty;
+
+            // сначала добавляем альбом
+            //signature += "album" + album;
+
+            // потом API Key
+            signature += "api_key" + ApiKey;
+
+            // исполнитель		   
+            signature += "artist" + artist;
+
+            // метод и ключ сессии
+            signature += "methodtrack.updateNowPlayingsk" + sett.LastSessionKey;
+            
+            // имя трека
+            signature += "track" + track;
+
+            // добавляем секретный код в конец
+            signature += mySecret;
+
+            // добавляем сформированную и захешированную MD5 сигнатуру к строке запроса
+            submissionReqString += "&api_sig=" + GetMD5(signature);
+
+            // и на этот раз делаем POST запрос на нужную страницу
+            HttpWebRequest submissionRequest = (HttpWebRequest)WebRequest.Create("http://ws.audioscrobbler.com/2.0/"); // адрес запроса без параметров
+
+            // очень важная строка. Долго я мучался, пока не выяснил, что она обязательно должна быть
+            submissionRequest.ServicePoint.Expect100Continue = false;
+
+            // Настраиваем параметры запроса
+            submissionRequest.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36";
+            // Указываем метод отправки данных скрипту, в случае с POST обязательно
+            submissionRequest.Method = "POST";
+            // В случае с POST обязательная строка
+            submissionRequest.ContentType = "application/x-www-form-urlencoded";
+
+            // ставим таймаут, чтобы программа не повисла при неудаче обращения к серверу, а выкинула Exception
+            submissionRequest.Timeout = 6000;
+
+            // Преобразуем данные в соответствующую кодировку, получаем массив байтов из строки с параметрами (UTF8 обязательно)
+            byte[] EncodedPostParams = Encoding.UTF8.GetBytes(submissionReqString);
+            submissionRequest.ContentLength = EncodedPostParams.Length;
+
+            // Записываем данные в поток запроса (массив байтов, откуда начинаем, сколько записываем)
+            submissionRequest.GetRequestStream().Write(EncodedPostParams, 0, EncodedPostParams.Length);
+            // закрываем поток
+            submissionRequest.GetRequestStream().Close();
+
+            // получаем ответ сервера
+            HttpWebResponse submissionResponse = (HttpWebResponse)submissionRequest.GetResponse();
+
+            // считываем поток ответа
+            string submissionResult = new StreamReader(submissionResponse.GetResponseStream(), Encoding.UTF8).ReadToEnd();
+            // разбор полётов. Если ответ не содержит status="ok", то дело плохо, выкидываем Exception и где-нибудь ловим его.
+            if (!submissionResult.Contains("status=\"ok\""))
+                throw new Exception("Треки не отправлены! Причина - " + submissionResult);
+
+            // иначе всё хорошо, выходим из метода и оповещаем пользователя, что трек заскробблен.
+        }
+
+       
 
     }
 }

@@ -408,6 +408,7 @@
                             <Button Style="{StaticResource roundedButton}" x:Name="updateButton" Click="updateButton_Click">Оновити</Button>
 
                             <Button Style="{StaticResource roundedButton}" x:Name="logOutButton" Click="logOutButton_Click">Вийти</Button>
+                            <Button Style="{StaticResource roundedButton}" x:Name="logInLastButton" Click="logInLastButton_Click">Вхід Last.fm</Button>
                             <Label x:Name="tracksCountLabel">0 треків</Label>
                             <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" Name="sortCombobox">
                                 <ComboBoxItem>За датою додавання</ComboBoxItem>
