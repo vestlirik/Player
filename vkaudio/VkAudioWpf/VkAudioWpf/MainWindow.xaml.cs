@@ -60,11 +60,16 @@ namespace VkAudioWpf
         TaskbarManager tbManager = TaskbarManager.Instance;
 
         Formms.Timer timer;
+        Formms.Timer timerScrobble;
 
 
         public MainWindow()
         {
             InitializeComponent();
+
+            timerScrobble = new System.Windows.Forms.Timer();
+            timerScrobble.Interval = 1000;
+            timerScrobble.Tick += timerScrobble_Tick;
 
             timer = new System.Windows.Forms.Timer();
             timer.Tick+=timer_Tick;
@@ -75,6 +80,7 @@ namespace VkAudioWpf
             lastInput = DateTime.Now;
 
             timer.Stop();
+            timerScrobble.Stop();
 
             startTime.Content = startTime.Content = "0:00";
             progressBar.Value = 0;
@@ -123,6 +129,11 @@ namespace VkAudioWpf
             logInButton_Click(new object(), new RoutedEventArgs());
             if(sett.LastSessionKey!="")
             logInLastButton_Click(new object(), new RoutedEventArgs());
+        }
+
+        void timerScrobble_Tick(object sender, EventArgs e)
+        {
+            listedTime++;
         }
 
         private void ReadSettings()
@@ -236,7 +247,19 @@ namespace VkAudioWpf
                     }
                     catch
                     {
-                        MessageBox.Show("Неможливо з'єднатися з vk.com");
+                        try
+                        {
+                            auth = new Auth();
+                            auth.ShowDialog();
+                            sett.VKToken = auth.Token;
+                            sett.UserId = auth.UserId;
+                            auth.Close();
+                            GetAuth();
+                        }
+                        catch
+                        {
+                            MessageBox.Show("Неможливо з'єднатися з vk.com");
+                        }
                     }
                 }
             
@@ -515,16 +538,17 @@ namespace VkAudioWpf
                 if(ShowBroadcast)
                 ((PlayListVk)playlist).SetStatus(audioId, sett.VKToken);
                 //scrobble
-
-                try
+                if (sett.LastSessionKey != "")
                 {
-                    ScrobbleTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
-                    LastUpdateNowTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
-                }
-                catch (Exception ex)
-                {
-                    //System.Windows.Forms.MessageBox.Show("Не заскроблило" + ex.InnerException);
-
+                    try
+                    {
+                        LastUpdateNowTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
+                    }
+                    catch { }
+                    scrobbleTime = (int)(double.Parse(((AudioVK)currSong).duration) / 2);
+                    listedTime = 0;
+                    IsScrobled = false;
+                    
                 }
                 //var song=((AudioVK)currSong);
                 //Lpfm.LastFmScrobbler.Scrobbler scr = new Lpfm.LastFmScrobbler.Scrobbler(ApiKey, mySecret, sessionKey);
@@ -797,6 +821,21 @@ namespace VkAudioWpf
             {
 
             }
+            if (listedTime >= scrobbleTime && !IsScrobled)
+            {
+                var currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
+                try
+                {
+                    ScrobbleTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
+                }
+                catch (Exception ex)
+                {
+                    //System.Windows.Forms.MessageBox.Show("Не заскроблило" + ex.InnerException);
+
+                }
+                IsScrobled = true;
+                timerScrobble.Stop();
+            }
 
         }
 
@@ -858,7 +897,9 @@ namespace VkAudioWpf
             titleLabel.Content = "Author - Title";
             timer.Stop();
             progressBar.Value = progressBar.Maximum = 0;
-            
+
+            if (!IsScrobled)
+            timerScrobble.Stop();
 
             if (TaskbarManager.IsPlatformSupported)
             {
@@ -872,6 +913,8 @@ namespace VkAudioWpf
         private void OnStatusEnded()
         {
             ChangePlayPauseIconInButton(false);
+            if (!IsScrobled)
+            timerScrobble.Stop();
             NextTrack();
         }
 
@@ -880,6 +923,10 @@ namespace VkAudioWpf
             ChangePlayPauseIconInButton(false);
             tbManager.SetProgressState(TaskbarProgressBarState.Paused);
             timer.Stop();
+            if(!IsScrobled)
+            {
+                timerScrobble.Start();
+            }
 
             buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Play;
         }
@@ -889,10 +936,14 @@ namespace VkAudioWpf
             ChangePlayPauseIconInButton(true);
             tbManager.SetProgressState(TaskbarProgressBarState.Normal);
             timer.Start();
+            if (!IsScrobled)
+            timerScrobble.Start();
 
             buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Pause;
         }
-
+        bool IsScrobled = false;
+        double listedTime=0;
+        double scrobbleTime = 0;
         private void OnStatusNotReady()
         {
             ChangePlayPauseIconInButton(false);
