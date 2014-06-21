@@ -14,7 +14,7 @@ namespace vkAudio
         {
             this.xmlNode = xmlNode;
 
-            this.aid = xmlNode["aid"].InnerText;
+            this.aid = xmlNode["id"].InnerText;
             this.owner_id = xmlNode["owner_id"].InnerText;
             this.artist = xmlNode["artist"].InnerText;
             this.title = xmlNode["title"].InnerText;

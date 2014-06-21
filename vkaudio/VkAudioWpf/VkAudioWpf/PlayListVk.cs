@@ -7,11 +7,26 @@ using System.Xml;
 
 namespace vkAudio
 {
-    public class PlayListVk : PlayList
+    public class PlayListVk
     {
-        protected new List<AudioVK> tracks;
-        protected AudioVK[] tracksTMP;
+        List<AudioVK> tracks;
+        AudioVK[] tracksTMP;
         bool reverse = false;
+
+        //current selected index of track
+        private int selTrack;
+
+        public int SelTrack
+        {
+            get
+            {
+                return selTrack;
+            }
+            set
+            {
+                selTrack = value;
+            }
+        }
 
         public PlayListVk()
         {
@@ -19,20 +34,11 @@ namespace vkAudio
         }
 
         //count of tracks
-        public override int Count()
+        public int Count()
         {
             return tracks.Count;
         }
-
-        //return current track
-        public override Audio GetCurrentTrack()
-        {
-            if (SelTrack >= 0)
-            return tracks[SelTrack];
-            else
-                return null;
-        }
-
+        
         //return current track
         public AudioVK GetCurrentTrackVK()
         {
@@ -43,39 +49,53 @@ namespace vkAudio
         }
 
         //get tracks from vk user
-        public override void DownloadTracks(string[] data)
+        public void DownloadTracks(string[] data)
         {
 
             var userId = data[0];
             var token = data[1];
-            Uri uri = new Uri("https://api.vk.com/method/audio.get.xml?owner_id=" + userId + /*"&count=50" + */"&access_token=" + token);
+            Uri uri = new Uri("https://api.vk.com/method/audio.get.xml?owner_id=" + userId + /*"&count=50" + */"&access_token=" + token + "&v=5.9");
 
             var x = new XmlDocument();
             x.Load(uri.ToString());
-            var audioElements = x.GetElementsByTagName("response")[0];
+            var audioElements = x.ChildNodes[1].ChildNodes[1];
 
             tracks.Clear();
 
             int length = audioElements.ChildNodes.Count;
 
-            for (int i = 1; i < length; i++)
+            for (int i = 0; i < length; i++)
+            {
+                var audio = new AudioVK(audioElements.ChildNodes[i]);
+                tracks.Add(audio);
+            }
+        }
+        
+        internal void DownloadAlbumTracks(string userId, string token, string albumId)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.get.xml?owner_id=" + userId + "&album_id=" + albumId + "&access_token=" + token + "&v=5.9");
+
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+            var audioElements = x.ChildNodes[1].ChildNodes[1];
+
+            tracks.Clear();
+
+            int length = audioElements.ChildNodes.Count;
+
+            for (int i = 0; i < length; i++)
             {
                 var audio = new AudioVK(audioElements.ChildNodes[i]);
                 tracks.Add(audio);
             }
         }
 
-
-        public override List<string> GetTrackList()
-        {
-            return tracks.Select(x => x.Name).ToList();
-        }
         public List<AudioVK> GetTrackListVK()
         {
             return tracks;//.Select(x => x.Name).ToList();
         }
 
-        public override void Remove(int selIndex)
+        public void Remove(int selIndex)
         {
             tracks.RemoveAt(selIndex);
         }
@@ -150,5 +170,6 @@ namespace vkAudio
                 }
             }
         }
+
     }
 }

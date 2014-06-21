@@ -94,11 +94,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Albums.cs" />
+    <Compile Include="AlbumVK.cs" />
     <Compile Include="Settings.cs" />
-    <Page Include="AuthLast.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Auth.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -114,9 +112,6 @@
     <Compile Include="Audio.cs" />
     <Compile Include="AudioLocal.cs" />
     <Compile Include="AudioVK.cs" />
-    <Compile Include="AuthLast.xaml.cs">
-      <DependentUpon>AuthLast.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Auth.xaml.cs">
       <DependentUpon>Auth.xaml</DependentUpon>
     </Compile>
