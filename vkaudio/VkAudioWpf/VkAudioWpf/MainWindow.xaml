@@ -433,7 +433,7 @@
                         </StackPanel>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Мої альбоми">
+                <TabItem Header="Мої альбоми" Margin="-3,1,3,-1">
                     <Grid Height="auto">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30px"></RowDefinition>
@@ -464,7 +464,18 @@
                         </StackPanel>
                     </Grid>
                 </TabItem>
-                <TabItem Header="Музика друзів"></TabItem>
+                <TabItem Header="Музика друзів">
+                    <Grid Height="370">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250px">
+                            </ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+
+                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listUserBox"   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" Grid.Column="0"/> <!--SelectionChanged=""-->
+                            <!--MouseMove=""  KeyUp=""  KeyDown=""--> 
+                    </Grid>
+                </TabItem>
                 <TabItem Header="Рекомендовані"></TabItem>
                 <TabItem Header="Популярні"></TabItem>
                 <TabItem Header="Рошук"></TabItem>

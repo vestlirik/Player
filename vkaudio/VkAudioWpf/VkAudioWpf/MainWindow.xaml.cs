@@ -64,6 +64,9 @@ namespace VkAudioWpf
         Formms.Timer timerScrobble;
 
 
+        private Albums albums;
+        private FriendList users;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -293,6 +296,12 @@ namespace VkAudioWpf
                 await Task.Factory.StartNew(() => albums.DownloadAlbums(new string[] { sett.UserId, sett.VKToken }));
 
                 FillAlbums(albums);
+
+                //users
+                users = new FriendList();
+                await Task.Factory.StartNew(() => users.DownloadUsers(sett.UserId));
+
+                FillUsers(listUserBox);
             }
         }
 
@@ -432,6 +441,82 @@ namespace VkAudioWpf
             }
         }
 
+
+        private void FillUsers(ListBox listbx)
+        {
+            listbx.Items.Clear();
+            foreach (var elm in users.GetUsers())
+            {
+                #region xaml listboxitem
+                //<ListBoxItem Height="25px" HorizontalAlignment="Stretch" Margin="0,0,0,3">
+                //            <Grid>
+                //                <Grid.ColumnDefinitions>
+                //                    <ColumnDefinition Width="410"/>
+                //                    <ColumnDefinition Width="60"/>
+                //                    <ColumnDefinition Width="70"/>
+                //                    <ColumnDefinition Width="40"/>
+                //                    <ColumnDefinition Width="70"/>
+                //                    <ColumnDefinition Width="80"/>
+                //                    <ColumnDefinition Width="40"/>
+                //                </Grid.ColumnDefinitions>
+                //                <Label Grid.Column="0" >Мері - Сестра</Label>
+                //                <Label Grid.Column="1" >320 kbps</Label>
+                //                <Label  Grid.Column="2">44 100 Hz</Label>
+                //                <Label Grid.Column="3">4:09</Label>
+                //                <Label Grid.Column="4">10,9 MB</Label>
+                //                <Button Grid.Column="5" Style="{StaticResource roundedButton}">Скачати</Button>
+                //                <Button Grid.Column="6"  Style="{StaticResource roundedButton}">X</Button>
+                //            </Grid>
+                //        </ListBoxItem> 
+                #endregion
+                ListBoxItem lstItem = new ListBoxItem();
+                lstItem.Height = 50;
+                lstItem.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
+                lstItem.Margin = new Thickness(0, 0, 0, 3);
+                lstItem.Style = this.FindResource("lstStyle") as Style;
+
+                #region creating grid for listboxItem
+                Grid grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(50) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(180) });
+                #endregion
+
+
+                System.Windows.Controls.Image img = new System.Windows.Controls.Image();
+                img.Height = 50;
+                img.Width = 50;
+                bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(elm.photo_50, UriKind.Absolute);
+                bitmap.EndInit();
+                img.Source = bitmap;
+                Grid.SetColumn(img, 0);
+                grid.Children.Add(img);
+
+
+                StackPanel stackPnl = new StackPanel();
+                stackPnl.Orientation = Orientation.Vertical; 
+                Label lbl = new Label() { Height=25, FontSize=10, Margin=new Thickness(0,0,0,0)};
+                lbl.Content = elm.first_name + " " + elm.last_name;
+                stackPnl.Children.Add(lbl);
+                lbl = new Label() { Height = 25, FontSize = 10, Margin = new Thickness(0, -15, 0, 0) };
+                lbl.Content = elm.online == "1" ? "online" : "";
+                stackPnl.Children.Add(lbl);
+                lbl = new Label() { Height = 25, FontSize = 10, Margin = new Thickness(0, -15, 0, 0) };
+                lbl.Content = elm.status;
+                stackPnl.Children.Add(lbl);
+
+                Grid.SetColumn(stackPnl, 1);
+                grid.Children.Add(stackPnl);
+                
+
+
+                lstItem.Content = grid;
+
+                listbx.Items.Add(lstItem);
+
+            }
+        }
 
 
         void lstItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -982,12 +1067,15 @@ namespace VkAudioWpf
         private void SetTaskbarthumbnail(string image)
         {
 
-            //Point relativePoint = pictureBox.PointToScreen(new Point(0, 0));
-            //var handle = Process.GetCurrentProcess().MainWindowHandle;
-            //TaskbarManager.Instance.TabbedThumbnail.SetThumbnailClip
-            //(Process.GetCurrentProcess().MainWindowHandle, new System.Drawing.Rectangle((int)relativePoint.X,(int)relativePoint.Y, (int)(pictureBox.Width - 1), (int)(pictureBox.Height - 4)));
 
-            taskInfo.ThumbnailClipMargin = new Thickness(0, 35, 650, 420);
+            if (playlistButton.IsChecked == true)
+            {
+                taskInfo.ThumbnailClipMargin = new Thickness(0, 35, 650, 420);
+            }
+            if (playlistButton.IsChecked == false)
+            {
+                taskInfo.ThumbnailClipMargin = new Thickness(0, 35, 650, 0);
+            }
 
         }
         
@@ -1416,25 +1504,13 @@ namespace VkAudioWpf
 
         private void logInLastButton_Click(object sender, RoutedEventArgs e)
         {
-            //authLast = new AuthLast();
             if(sett.LastSessionKey=="")
             GetAuthLast();
-            //if (auth.IsAuth)
-            //{
-            //    playlist = new PlayListVk();
-            //    await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { auth.UserId, auth.Token }));
-
-            //    tracksCountLabel.Content = playlist.Count() + " треків";
-
-            //    FillListBox((PlayListVk)playlist);
-
-            //}
         }
 
 
         string ApiKey = "b7d62b44095bbe482030e12b4aa33572";
         string mySecret = "dd068a460a815ca350b125d3ae388e42";
-        private Albums albums;
         private void GetAuthLast()
         {
             // создаём объект HttpWebRequest через статический метод Create класса WebRequest, явно приводим результат к HttpWebRequest. В параметрах указываем страницу, которая указана в API, в качестве параметров - method=auth.gettoken и наш API Key
@@ -1529,8 +1605,8 @@ namespace VkAudioWpf
             submissionReqString += "method=track.scrobble&sk=" + sett.LastSessionKey + "&api_key=" + ApiKey;
 
             //добавляем только обязательную информацию о треке (исполнитель, трек, время прослушивания, альбом), кодируя их с помощью статического метода UrlEncode класса HttpUtility.
-            submissionReqString += "&artist=" + HttpUtility.UrlEncode( artist);
-            submissionReqString += "&track=" + HttpUtility.UrlEncode(track);
+            submissionReqString += "&artist=" + WebUtility.UrlEncode( artist);
+            submissionReqString += "&track=" + WebUtility.UrlEncode(track);
             submissionReqString += "&timestamp=" + timestamp.ToString(); // в этой строке не должно быть пробела между & и t. Просто почему-то Хабр неправильно отображает этот участок, если пробел убрать.
             //submissionReqString += "&album=" + HttpUtility.UrlEncode(album);
 
@@ -1615,8 +1691,8 @@ namespace VkAudioWpf
             submissionReqString += "method=track.updateNowPlaying&sk=" + sett.LastSessionKey + "&api_key=" + ApiKey;
 
             //добавляем только обязательную информацию о треке (исполнитель, трек, время прослушивания, альбом), кодируя их с помощью статического метода UrlEncode класса HttpUtility.
-            submissionReqString += "&artist=" + HttpUtility.UrlEncode(artist);
-            submissionReqString += "&track=" + HttpUtility.UrlEncode(track);
+            submissionReqString += "&artist=" + WebUtility.UrlEncode(artist);
+            submissionReqString += "&track=" + WebUtility.UrlEncode(track);
             // в этой строке не должно быть пробела между & и t. Просто почему-то Хабр неправильно отображает этот участок, если пробел убрать.
             //submissionReqString += "&album=" + HttpUtility.UrlEncode(album);
 
@@ -1935,6 +2011,11 @@ namespace VkAudioWpf
             {
                 DoubleAlbumListBoxClick();
             }
+        }
+
+        private void GetUsersButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
        

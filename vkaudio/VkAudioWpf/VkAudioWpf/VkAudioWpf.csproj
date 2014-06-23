@@ -62,9 +62,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vkAudio\vkAudio\bin\Debug\Bass.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Lpfm.LastFmScrobbler">
-      <HintPath>..\..\..\..\..\..\Downloads\Lpfm.LastFmScrobbler.dll.1.3\Lpfm.LastFmScrobbler.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack">
       <HintPath>..\..\vkAudio\vkAudio\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -96,7 +93,9 @@
     </ApplicationDefinition>
     <Compile Include="Albums.cs" />
     <Compile Include="AlbumVK.cs" />
+    <Compile Include="FriendList.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="User.cs" />
     <Page Include="Auth.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
