@@ -160,6 +160,14 @@
     <Content Include="bass.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Resource Include="images\devices\iphone.png" />
+    <Resource Include="images\devices\windows.png" />
+    <Resource Include="images\devices\ipad.png" />
+    <Resource Include="images\devices\mobile.png" />
+    <Resource Include="images\devices\android.png" />
+    <Resource Include="images\devices\web.png" />
+    <Resource Include="images\devices\wphone.png" />
+    <Resource Include="images\lock-it-07-icon.png" />
     <Resource Include="Icon1.ico" />
     <SplashScreen Include="Zeus.jpg" />
     <None Include="Resources\Hopstarter-Button-Button-Play.ico" />

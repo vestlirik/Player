@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace vkAudio
+namespace VkAudioWpf
 {
     public class AudioVK : Audio, IComparable<AudioVK>
     {
@@ -42,7 +42,7 @@ namespace vkAudio
         }
 
         //get lyrics of track
-        public string GetLirycs(string token)
+        public string GetLyrics(string token)
         {
             if (lyrics_id != "")
             {
@@ -82,7 +82,15 @@ namespace vkAudio
         // Default comparer for Part type.
         public int CompareTo(AudioVK compObj)
         {
-            return String.Compare( this.Name , compObj.Name);
+            return String.Compare(this.Name, compObj.Name);
+        }
+
+        public bool HasLyrics
+        {
+            get
+            {
+                return lyrics_id.Trim().Length > 0;
+            }
         }
     }
 }

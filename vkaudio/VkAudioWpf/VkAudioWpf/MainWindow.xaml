@@ -346,7 +346,7 @@
                         <Label Padding="5px" x:Name="titleLabel">
                             Author - Title
                         </Label>
-                        
+
                         <DockPanel Margin="5px" Width="auto">
                             <Button Style="{StaticResource roundedButton}" Height="50px" Width="50px" x:Name="prevButton" Click="prevButton_Click">
                                 <Canvas Margin="-15px,-10px,0,0">
@@ -411,6 +411,7 @@
                             <Label x:Name="usernameLabel">Ваше ім'я</Label>
 
                             <Button Style="{StaticResource roundedButton}" x:Name="updateButton" Click="updateButton_Click">Оновити</Button>
+                            <Button Style="{StaticResource roundedButton}" x:Name="offlineButton" Click="offlineButton_Click">Оффлайн</Button>
 
                             <Button Style="{StaticResource roundedButton}" x:Name="logOutButton" Click="logOutButton_Click">Вийти</Button>
                             <Button Style="{StaticResource roundedButton}" x:Name="logInLastButton" Click="logInLastButton_Click">Вхід Last.fm</Button>
@@ -423,7 +424,7 @@
                             <ToggleButton  Style="{StaticResource toggle}" IsChecked="True" Click="ToggleButton_Click">Транслювати в вк</ToggleButton>
                             <Button  Style="{StaticResource roundedButton}" Click="Button_Click_2">Поточний трек</Button>
                         </StackPanel>
-                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listBox" MouseMove="listBox_MouseMove" KeyUp="listBox_KeyUp" KeyDown="listBox_KeyDown" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listBox_SelectionChanged"/>
+                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listBox" MouseMove="listBox_MouseMove" KeyUp="listBox_KeyUp" KeyDown="listBox_KeyDown" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listBox_SelectionChanged" Width="780"/>
                         <StackPanel Orientation="Horizontal" Grid.Row="2">
                             <Label>Пошук в списку</Label>
                             <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="TextBox_KeyUp" Name="searchBox" KeyDown="searchBox_KeyDown"></TextBox>
@@ -454,7 +455,7 @@
                             <ToggleButton  Style="{StaticResource toggle}" Name="reverseInAlbumButton" Click="reverseInAlbumButton_Click">Z->A</ToggleButton>
                             <Button  Style="{StaticResource roundedButton}" Click="Button_Click_3">Поточний трек</Button>
                         </StackPanel>
-                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listAlbumBox" MouseMove="listAlbumBox_MouseMove"  KeyUp="listAlbumBox_KeyUp"  KeyDown="listAlbumBox_KeyDown"  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listAlbumBox_SelectionChanged"/>
+                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listAlbumBox" MouseMove="listAlbumBox_MouseMove"  KeyUp="listAlbumBox_KeyUp"  KeyDown="listAlbumBox_KeyDown"  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listAlbumBox_SelectionChanged" Width="780"/>
                         <StackPanel Orientation="Horizontal" Grid.Row="2">
                             <Label>Пошук в списку</Label>
                             <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInAlbumBox_KeyUp"  Name="searchInAlbumBox" KeyDown="searchInAlbumBox_KeyDown"></TextBox>
@@ -467,13 +468,45 @@
                 <TabItem Header="Музика друзів">
                     <Grid Height="370">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250px">
-                            </ColumnDefinition>
+                            <ColumnDefinition Width="250px"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
 
-                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listUserBox"   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" Grid.Column="0"/> <!--SelectionChanged=""-->
-                            <!--MouseMove=""  KeyUp=""  KeyDown=""--> 
+                        <StackPanel x:Name="userStackPanel" Grid.Column="0" Height="370">
+                            <!--<Button Style="{StaticResource roundedButton}" x:Name="updateFriendListButton" Click="updateFriendList_Click">Оновити друзів</Button>-->
+                            <Label x:Name="usersInfoLabel"></Label>
+                            <ListBox Margin="5" Background="Silver" Name="listUserBox"   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="340" SelectionChanged="listUserBox_SelectionChanged"/>
+                        </StackPanel>
+
+                        <Grid Height="auto" Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30px"></RowDefinition>
+                                <RowDefinition Height="300px"></RowDefinition>
+                                <RowDefinition Height="30px"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <!--acccount - vk, authorize, count of tracks,sorting-->
+                            <StackPanel Orientation="Horizontal">
+
+                                <Button Style="{StaticResource roundedButton}" x:Name="updateuserTracksButton" Click="updateuserTracksButton_Click">Оновити</Button>
+
+                                <Label x:Name="tracksUserCountLabel">0 треків</Label>
+                                <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True" SelectionChanged="sortInUserTracksCombobox_SelectionChanged"  Name="sortInUserTracksCombobox">
+                                    <ComboBoxItem>За датою додавання</ComboBoxItem>
+                                    <ComboBoxItem>За назвою</ComboBoxItem>
+                                </ComboBox>
+                                <ToggleButton  Style="{StaticResource toggle}" Name="reverseInUserTracksButton" Click="reverseInUserTracksButton_Click">Z->A</ToggleButton>
+                                <Button  Style="{StaticResource roundedButton}" Click="GetCurrentUserTrack_Click">Поточний трек</Button>
+                            </StackPanel>
+                            <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listUserTracksBox" MouseMove="listAlbumBox_MouseMove"  KeyUp="listAlbumBox_KeyUp"  KeyDown="listAlbumBox_KeyDown"  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listUserTracksBox_SelectionChanged"  Width="530"/>
+                            <StackPanel Orientation="Horizontal" Grid.Row="2">
+                                <Label>Пошук в списку</Label>
+                                <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInAlbumBox_KeyUp"  Name="searchInUserTracksBox" KeyDown="searchInAlbumBox_KeyDown"></TextBox>
+                                <Button Width="30" Style="{StaticResource roundedButton}" x:Name="clearInSearchUserTracksButton" Click="clearInAlbumButton_Click">Х</Button>
+                                <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksPrev" Click="searchInAlbumPrev_Click"></Button>
+                                <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksNext" Click="searchInAlbumNext_Click"></Button>
+                            </StackPanel>
+                        </Grid>
+
                     </Grid>
                 </TabItem>
                 <TabItem Header="Рекомендовані"></TabItem>
