@@ -39,6 +39,8 @@ namespace VkAudioWpf
 
             this.Name = artist + " - " + title;
 
+            IsAdded = false;
+
         }
 
         //get lyrics of track
@@ -60,6 +62,31 @@ namespace VkAudioWpf
                 }
             }
             return "";
+        }
+
+        //add to my audio
+        public bool Add(string token)
+        {
+            try
+            {
+                Uri uri = new Uri("https://api.vk.com/method/audio.add.xml?audio_id=" + aid + "&owner_id=" + owner_id + "&access_token=" + token);
+                var x = new XmlDocument();
+                x.Load(uri.ToString());
+                var el = x.GetElementsByTagName("response")[0].InnerText;
+                int z;
+                bool b = Int32.TryParse(el,out z);
+                if (b)
+                {
+                    IsAdded = true;
+                    return true;
+                }
+                else
+                    return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public string aid { get; protected set; }
@@ -92,5 +119,7 @@ namespace VkAudioWpf
                 return lyrics_id.Trim().Length > 0;
             }
         }
+
+        public bool IsAdded { get; set; }
     }
 }

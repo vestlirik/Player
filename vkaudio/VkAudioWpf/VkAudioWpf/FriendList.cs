@@ -192,5 +192,15 @@ namespace VkAudioWpf
         {
             return users.Count(x => x.online == "1");
         }
+
+        public bool IsCurrentUserFillTracks { get {
+            return selectedUser.IsFilledTracks;
+        
+        } }
+
+        internal void CurrentUserFilledTracks()
+        {
+            this.selectedUser.FillTracks();
+        }
     }
 }

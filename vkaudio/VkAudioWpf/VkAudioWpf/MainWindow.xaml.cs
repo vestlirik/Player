@@ -291,7 +291,7 @@ namespace VkAudioWpf
 
                 tracksCountLabel.Content = playlist.Count() + " треків";
 
-                FillListBox((PlayListVk)playlist, listBox);
+                FillListBox((PlayListVk)playlist, listBox,false,true);
 
                 //albums
                 albums = new Albums();
@@ -300,7 +300,7 @@ namespace VkAudioWpf
                 FillAlbums(albums);
 
                 //users
-                updateFriendList();
+                loadFriendList();
             }
         }
 
@@ -313,7 +313,7 @@ namespace VkAudioWpf
             }
         }
 
-        private void FillListBox(PlayListVk pls, ListBox listbx)
+        private void FillListBox(PlayListVk pls, ListBox listbx, bool allowAdding, bool allowDeleting)
         {
             listbx.Items.Clear();
             foreach (var elm in pls.GetTrackListVK())
@@ -347,20 +347,40 @@ namespace VkAudioWpf
                 lstItem.Style = this.FindResource("lstStyle") as Style;
 
                 #region creating grid for listboxItem
+
+                bool isAllowAddCurrTrack = allowAdding;
+                bool isAllowDeletingCurrTrack = allowDeleting;
+                if (allowAdding)
+                    isAllowAddCurrTrack = !elm.IsAdded;
+
+                int sumSize = 0;
+                sumSize += 40;
+                if (isAllowAddCurrTrack)
+                    sumSize += 30;
+                sumSize += 70;
+                if (isAllowDeletingCurrTrack)
+                    sumSize += 40;
+
+
                 Grid grid = new Grid();
-                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(listbx.Width - 160 - 20) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(listbx.Width - sumSize - 30) });
                 //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(60) });
-                //grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(70) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+                if (isAllowAddCurrTrack)
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(80) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+                if (isAllowDeletingCurrTrack)
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
                 #endregion
 
+
+                int colemn = 0;
 
                 #region add elements in grid for listboxitem
                 System.Windows.Controls.Label lbl = new System.Windows.Controls.Label();
                 lbl.Content = elm.artist + " - " + elm.title;
-                Grid.SetColumn(lbl, 0);
+                Grid.SetColumn(lbl, colemn);
+                colemn++;
                 grid.Children.Add(lbl);
 
                 //lbl = new System.Windows.Controls.Label();
@@ -375,33 +395,42 @@ namespace VkAudioWpf
 
                 lbl = new System.Windows.Controls.Label();
                 lbl.Content = elm.DurationString;
-                Grid.SetColumn(lbl, 1);
+                Grid.SetColumn(lbl, colemn);
+                colemn++;
                 grid.Children.Add(lbl);
 
-                //lbl = new System.Windows.Controls.Label();
-                //lbl.Name = "lbl" + listBox.Items.Count;
+                Button btn;
 
-                ////new Task((() =>
-                ////    {
+                #region add button
+                if (isAllowAddCurrTrack)
+                {
+                    Button addBtn = new Button();
+                    addBtn.Style = this.FindResource("roundedButton") as Style;
+                    addBtn.Content = "+";
 
-                ////        this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
-                ////        {
+                    addBtn.Click += (object send, RoutedEventArgs ee) =>
+                    {
+                        addBtn.IsEnabled = false;
+                        var color=addBtn.Background;
+                        addBtn.Background = Brushes.Yellow;
+                        if (!elm.Add(sett.VKToken))
+                        {
+                            MessageBox.Show("Виникла помилка з додаваням треку");
+                            addBtn.IsEnabled = true;
+                            addBtn.Background = color;
 
-                ////            lbl.Content = String.Format("{0:0.00}", GetSize(elm.GetLocation)) + " MB";
+                        }
+                    };
 
-                ////            return null;
+                    Grid.SetColumn(addBtn, colemn);
+                    colemn++;
+                    grid.Children.Add(addBtn);
+                }
+                #endregion
 
-                ////        }), null);
-
-                ////    }
 
 
-                ////    )).Start();
-
-                //Grid.SetColumn(lbl, 2);
-                //grid.Children.Add(lbl);
-
-                Button btn = new Button();
+                btn = new Button();
                 btn.Style = this.FindResource("roundedButton") as Style;
                 btn.Content = "Скачати";
 
@@ -410,20 +439,29 @@ namespace VkAudioWpf
                     DownloadFile(elm.GetLocation, elm.Name);
                 };
 
-                Grid.SetColumn(btn, 2);
+                Grid.SetColumn(btn, colemn);
+                colemn++;
                 grid.Children.Add(btn);
 
-                btn = new Button();
-                btn.Style = this.FindResource("roundedButton") as Style;
-                btn.Content = "X";
 
-                btn.Click += (object send, RoutedEventArgs ee) =>
+
+                #region add deleting button
+                if (isAllowDeletingCurrTrack)
                 {
-                    DeleteTrack(listBox.Items.IndexOf(lstItem));
-                };
+                    btn = new Button();
+                    btn.Style = this.FindResource("roundedButton") as Style;
+                    btn.Content = "X";
 
-                Grid.SetColumn(btn, 3);
-                grid.Children.Add(btn);
+                    btn.Click += (object send, RoutedEventArgs ee) =>
+                    {
+                        DeleteTrack(listBox.Items.IndexOf(lstItem));
+                    };
+
+                    Grid.SetColumn(btn, colemn);
+                    colemn++;
+                    grid.Children.Add(btn);
+                }
+                #endregion
                 #endregion
 
                 lstItem.Content = grid;
@@ -546,19 +584,19 @@ namespace VkAudioWpf
                 lbl.Content = elm.online == "1" ? "online" : (elm.sex == "1" ? "була" : "був") + " " + Settings.UnixTimeStampToDateTime(double.Parse(elm.last_seen_time));
                 stack.Children.Add(lbl);
 
-                    Image img3 = new Image();
-                    img3.Height = 15;
-                    img3.Width = 15;
-                    bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new Uri("/images/devices/"+elm.last_seen_platform_string+".png", UriKind.Relative);
-                    bitmap.EndInit();
-                    img3.Source = bitmap;
-                    img3.ToolTip = elm.last_seen_platform_string[0].ToString().ToUpper() + elm.last_seen_platform_string.Substring(1);
+                Image img3 = new Image();
+                img3.Height = 15;
+                img3.Width = 15;
+                bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri("/images/devices/" + elm.last_seen_platform_string + ".png", UriKind.Relative);
+                bitmap.EndInit();
+                img3.Source = bitmap;
+                img3.ToolTip = elm.last_seen_platform_string[0].ToString().ToUpper() + elm.last_seen_platform_string.Substring(1);
 
-                    img3.Margin = new Thickness(0, -15, 0, 0);
+                img3.Margin = new Thickness(0, -15, 0, 0);
 
-                    stack.Children.Add(img3);
+                stack.Children.Add(img3);
 
                 stackPnl.Children.Add(stack);
 
@@ -1442,7 +1480,7 @@ namespace VkAudioWpf
             }
             else
                 ((PlayListVk)playlist).ReverseOff();
-            FillListBox((PlayListVk)playlist, listBox);
+            FillListBox((PlayListVk)playlist, listBox, false, true);
             if (currTrack != null)
             {
                 ((PlayListVk)playlist).SelectTrackByAid(selTrack);
@@ -1465,7 +1503,7 @@ namespace VkAudioWpf
                     if (sortCombobox.SelectedIndex == 1)
                         ((PlayListVk)playlist).SortByName();
 
-                FillListBox((PlayListVk)playlist, listBox);
+                FillListBox((PlayListVk)playlist, listBox,false,true);
                 if (currTrack != null)
                 {
                     ((PlayListVk)playlist).SelectTrackByAid(selTrack);
@@ -1518,7 +1556,7 @@ namespace VkAudioWpf
 
             tracksCountLabel.Content = playlist.Count() + " треків";
 
-            FillListBox((PlayListVk)playlist, listBox);
+            FillListBox((PlayListVk)playlist, listBox,false,true);
             if (currTrack != null)
             {
                 ((PlayListVk)playlist).SelectTrackByAid(selTrack);
@@ -1839,7 +1877,7 @@ namespace VkAudioWpf
             {
                 albums.SelectAlbum(albumsCombobox.SelectedIndex, sett.UserId, sett.VKToken);
                 tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
-                FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox);
+                FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox,false,true);
                 Button_Click_3(this, new RoutedEventArgs());
             }
         }
@@ -1867,7 +1905,7 @@ namespace VkAudioWpf
                         if (sortInAlbumCombobox.SelectedIndex == 1)
                             pls.SortByName();
 
-                    FillListBox(pls, listAlbumBox);
+                    FillListBox(pls, listAlbumBox,false,true);
                     if (currTrack != null)
                     {
                         pls.SelectTrackByAid(selTrack);
@@ -1890,7 +1928,7 @@ namespace VkAudioWpf
             }
             else
                 pls.ReverseOff();
-            FillListBox(pls, listAlbumBox);
+            FillListBox(pls, listAlbumBox,false,true);
             if (currTrack != null)
             {
                 pls.SelectTrackByAid(selTrack);
@@ -1921,7 +1959,7 @@ namespace VkAudioWpf
 
             tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
             albums.SetSelectedTracksForAlbum(selectedTracks);
-            FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox);
+            FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox,false,true);
 
             listAlbumBox.SelectedIndex = albums.GetSelectedAlbum().playlist.SelTrack;
 
@@ -2099,33 +2137,23 @@ namespace VkAudioWpf
             if (sett.SetOffline() != "1")
                 MessageBox.Show("Проблема з'єднання з vk.com");
         }
-
-        private void updateFriendList_Click(object sender, RoutedEventArgs e)
-        {
-            //string selUser = users.GetSelectedUserId();
-            //users.UpdateUsers();
-            //FillUsers(listUserBox);
-            //listUserBox.SelectedIndex = users.SelectUserById(selUser);
-            //usersInfoLabel.Content = users.GetCount() + " друзів  " + users.GetOnlineCount() + " онлайн";
-        }
-
-        private void updateFriendList()
+        
+        private void loadFriendList()
         {
             users = new FriendList(sett.UserId, sett.VKToken);
             users.OnUsersUpdated += users_OnUsersUpdated;
-            FillUsers(listUserBox);
-            usersInfoLabel.Content = users.GetCount() + " друзів  " + users.GetOnlineCount() + " онлайн";
         }
 
         void users_OnUsersUpdated()
         {
             string selUser = users.GetSelectedUserId();
             FillUsers(listUserBox);
-            if(selUser.Trim().Length>0)
-            listUserBox.SelectedIndex = users.SelectUserById(selUser);
+            if (selUser.Trim().Length > 0)
+                listUserBox.SelectedIndex = users.SelectUserById(selUser);
             usersInfoLabel.Content = users.GetCount() + " друзів  " + users.GetOnlineCount() + " онлайн";
         }
 
+        int activeUser = -1;
         private void listUserBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (listUserBox.SelectedIndex >= 0)
@@ -2134,15 +2162,26 @@ namespace VkAudioWpf
                 {
                     this.users.SelectUser(listUserBox.SelectedIndex);
                     tracksUserCountLabel.Content = users.GetSelectedUserPlaylist().Count() + " треків " + users.GetCurrentUserName();
-                    FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox);
-                    GetCurrentUserTrack_Click(sender, e);
-
+                    if (activeUser != listUserBox.SelectedIndex)
+                    {
+                        FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false);
+                        users.CurrentUserFilledTracks();
+                        GetCurrentUserTrack_Click(sender, e);
+                    }
+                    else
+                        if(!users.IsCurrentUserFillTracks)
+                    {
+                        FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false);
+                        users.CurrentUserFilledTracks();
+                        GetCurrentUserTrack_Click(sender, e);
+                    }
                 }
                 else
                 {
                     listUserBox.SelectedIndex = users.GetSelectedUserIndex();
                     MessageBox.Show("Користувач заборонив переглядати аудіозаписи");
                 }
+                activeUser = listUserBox.SelectedIndex;
             }
         }
 
@@ -2152,7 +2191,8 @@ namespace VkAudioWpf
             {
                 this.users.UpdateUserTracks();
                 tracksUserCountLabel.Content = users.GetSelectedUserPlaylist().Count() + " треків " + users.GetCurrentUserName();
-                FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox);
+                FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox,true,false);
+                users.CurrentUserFilledTracks();
                 GetCurrentUserTrack_Click(sender, e);
             }
             else
@@ -2179,7 +2219,8 @@ namespace VkAudioWpf
                         if (sortInUserTracksCombobox.SelectedIndex == 1)
                             pls.SortByName();
 
-                    FillListBox(pls, listUserTracksBox);
+                    FillListBox(pls, listUserTracksBox,true,false);
+                    users.CurrentUserFilledTracks();
                     if (currTrack != null)
                     {
                         pls.SelectTrackByAid(selTrack);
@@ -2204,7 +2245,8 @@ namespace VkAudioWpf
                 }
                 else
                     pls.ReverseOff();
-                FillListBox(pls, listAlbumBox);
+                FillListBox(pls, listAlbumBox,true,false);
+                users.CurrentUserFilledTracks();
                 if (currTrack != null)
                 {
                     pls.SelectTrackByAid(selTrack);
@@ -2225,6 +2267,91 @@ namespace VkAudioWpf
         private void listUserTracksBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             listUserTracksBox.ScrollIntoView(listUserTracksBox.SelectedItem);
+        }
+
+        private void searchInUserTracksBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            var pls = users.GetSelectedUserPlaylist();
+            if ((e.Key < Key.A && e.Key > Key.Z) || (e.Key < Key.D0 && e.Key > Key.D9))
+            {
+                e.Handled = true;
+                return;
+            }
+            if (e.Key != Key.Enter)
+                if (e.Key != Key.LeftAlt && e.Key != Key.LeftCtrl)
+                {
+                    if (pls != null && pls.Count() > 0)
+                    {
+                        var searchText = searchInUserTracksBox.Text.Trim();
+                        if (searchText == "")
+                        {
+                            listUserTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                        for (int i = 0; i < pls.Count(); i++)
+                        {
+                            if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                listUserTracksBox.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+        }
+
+        private void clearInSearchUserTracksButton_Click(object sender, RoutedEventArgs e)
+        {
+            searchInUserTracksBox.Clear();
+            listUserTracksBox.SelectedIndex = users.GetSelectedUserPlaylist().SelTrack;
+        }
+
+        private void searchInUserTracksPrev_Click(object sender, RoutedEventArgs e)
+        {
+            var pls = users.GetSelectedUserPlaylist();
+            var searchText = searchInUserTracksBox.Text.Trim();
+            if (pls != null && pls.Count() > 0)
+                if (searchText != "" && listUserTracksBox.SelectedIndex != -1)
+                {
+                    for (int i = listUserTracksBox.SelectedIndex - 1; i > 0; i--)
+                    {
+                        if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listUserTracksBox.SelectedIndex = i;
+                            break;
+                        }
+                        if (i == 0)
+                        {
+                            listUserTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                    }
+                }
+            searchInUserTracksBox.Focus();
+        }
+
+        private void searchInUserTracksNext_Click(object sender, RoutedEventArgs e)
+        {
+            var pls = users.GetSelectedUserPlaylist();
+            var searchText = searchInUserTracksBox.Text.Trim();
+            if (pls != null && pls.Count() > 0)
+                if (searchText != "" && listUserTracksBox.SelectedIndex != -1)
+                {
+                    for (int i = listUserTracksBox.SelectedIndex + 1; i < listUserTracksBox.Items.Count; i++)
+                    {
+                        if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listUserTracksBox.SelectedIndex = i;
+                            break;
+                        }
+                        if (i == listUserTracksBox.Items.Count)
+                        {
+                            listUserTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                    }
+                }
+            searchInUserTracksBox.Focus();
         }
 
 

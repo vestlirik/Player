@@ -500,10 +500,10 @@
                             <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listUserTracksBox" MouseMove="listAlbumBox_MouseMove"  KeyUp="listAlbumBox_KeyUp"  KeyDown="listAlbumBox_KeyDown"  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listUserTracksBox_SelectionChanged"  Width="530"/>
                             <StackPanel Orientation="Horizontal" Grid.Row="2">
                                 <Label>Пошук в списку</Label>
-                                <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInAlbumBox_KeyUp"  Name="searchInUserTracksBox" KeyDown="searchInAlbumBox_KeyDown"></TextBox>
-                                <Button Width="30" Style="{StaticResource roundedButton}" x:Name="clearInSearchUserTracksButton" Click="clearInAlbumButton_Click">Х</Button>
-                                <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksPrev" Click="searchInAlbumPrev_Click"></Button>
-                                <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksNext" Click="searchInAlbumNext_Click"></Button>
+                                <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInUserTracksBox_KeyUp"  Name="searchInUserTracksBox" KeyDown="searchInAlbumBox_KeyDown"></TextBox>
+                                <Button Width="30" Style="{StaticResource roundedButton}" x:Name="clearInSearchUserTracksButton" Click="clearInSearchUserTracksButton_Click">Х</Button>
+                                <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksPrev" Click="searchInUserTracksPrev_Click"></Button>
+                                <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksNext" Click="searchInUserTracksNext_Click"></Button>
                             </StackPanel>
                         </Grid>
 

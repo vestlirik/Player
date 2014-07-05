@@ -154,6 +154,8 @@ namespace VkAudioWpf
             this.can_see_audio = xmlNode["can_see_audio"].InnerText;
             this.can_write_private_message = xmlNode["can_write_private_message"].InnerText;
 
+            IsFilledTracks = false;
+
         }
 
         internal void DownloadTrackList(string token)
@@ -200,6 +202,16 @@ namespace VkAudioWpf
             this.status_audio_owner_id = user.status_audio_owner_id;
             this.status_audio_title = user.status_audio_title;
             this.status_audio_url = user.status_audio_url;
+        }
+
+        internal bool IsFilledTracks
+        {
+            get; set;
+        }
+
+        internal void FillTracks()
+        {
+            IsFilledTracks = true;
         }
     }
 }
