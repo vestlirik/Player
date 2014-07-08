@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 namespace VkAudioWpf
 {
@@ -61,6 +63,8 @@ namespace VkAudioWpf
 
         private PlayListVk playlist;
         private bool isPlaylistDownloaded = false;
+        private Image image;
+
         public bool IsDownloaded
         {
             get
@@ -74,7 +78,14 @@ namespace VkAudioWpf
             this.id = xmlNode["id"].InnerText;
             this.first_name = xmlNode["first_name"].InnerText;
             this.last_name = xmlNode["last_name"].InnerText;
-            this.sex = xmlNode["sex"].InnerText;
+            try
+            {
+                this.sex = xmlNode["sex"].InnerText;
+            }
+            catch
+            {
+                this.sex = "";
+            }
             try
             {
                 this.bdate = xmlNode["bdate"].InnerText;
@@ -154,9 +165,17 @@ namespace VkAudioWpf
             this.can_see_audio = xmlNode["can_see_audio"].InnerText;
             this.can_write_private_message = xmlNode["can_write_private_message"].InnerText;
 
+            #region download image
+
+            DownloadImage();
+
+            #endregion
+
             IsFilledTracks = false;
 
         }
+
+
 
         internal void DownloadTrackList(string token)
         {
@@ -189,7 +208,7 @@ namespace VkAudioWpf
             this.last_seen_time = user.last_seen_time;
             this.online = user.online;
             this.photo_100 = user.photo_100;
-            this.photo_200= user.photo_200;
+            this.photo_200 = user.photo_200;
             this.photo_200_orig = user.photo_200_orig;
             this.photo_400_orig = user.photo_400_orig;
             this.photo_50 = user.photo_50;
@@ -203,6 +222,37 @@ namespace VkAudioWpf
             this.status_audio_title = user.status_audio_title;
             this.status_audio_url = user.status_audio_url;
         }
+        internal void UpdateDataFrom(User user)
+        {
+            this.can_see_audio = user.can_see_audio;
+            this.can_write_private_message = user.can_write_private_message;
+            this.last_seen_platform = user.last_seen_platform;
+            this.last_seen_time = user.last_seen_time;
+            this.online = user.online;
+            if (!this.photo_50.Equals(user.photo_50))
+            {
+                this.photo_50 = user.photo_50;
+                DownloadImage();
+            }
+            this.status = user.status;
+            this.status_audio_artist = user.status_audio_artist;
+            this.status_audio_id = user.status_audio_id;
+            this.status_audio_owner_id = user.status_audio_owner_id;
+            this.status_audio_title = user.status_audio_title;
+            this.status_audio_url = user.status_audio_url;
+        }
+
+        private void DownloadImage()
+        {
+            image = new System.Windows.Controls.Image();
+            image.Height = 50;
+            image.Width = 50;
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(this.photo_50, UriKind.Absolute);
+            bitmap.EndInit();
+            image.Source = bitmap;
+        }
 
         internal bool IsFilledTracks
         {
@@ -212,6 +262,17 @@ namespace VkAudioWpf
         internal void FillTracks()
         {
             IsFilledTracks = true;
+        }
+
+        internal Image GetImage
+        {
+            get
+            {
+                if (image != null)
+                    return image;
+                else
+                    return null;
+            }
         }
     }
 }

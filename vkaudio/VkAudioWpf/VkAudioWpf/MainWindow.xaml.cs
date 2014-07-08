@@ -470,17 +470,15 @@ namespace VkAudioWpf
                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(180) });
                 #endregion
 
+                var image = elm.GetImage;
 
-                System.Windows.Controls.Image img = new System.Windows.Controls.Image();
-                img.Height = 50;
-                img.Width = 50;
-                bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(elm.photo_50, UriKind.Absolute);
-                bitmap.EndInit();
-                img.Source = bitmap;
-                Grid.SetColumn(img, 0);
-                grid.Children.Add(img);
+                if (image.Parent != null)
+                {
+                    var parent = (Grid)image.Parent;
+                    parent.Children.Remove(image);
+                }
+                Grid.SetColumn(image, 0);
+                grid.Children.Add(image);
 
 
                 StackPanel stackPnl = new StackPanel();
@@ -537,7 +535,6 @@ namespace VkAudioWpf
 
                 stackPnl.Children.Add(stack);
 
-
                 lbl = new Label() { Height = 25, FontSize = 10, Margin = new Thickness(0, -15, 0, 0) };
                 lbl.Content = elm.status;
                 if (elm.status.Length > 30)
@@ -549,13 +546,12 @@ namespace VkAudioWpf
                 Grid.SetColumn(stackPnl, 1);
                 grid.Children.Add(stackPnl);
 
-
-
                 lstItem.Content = grid;
 
                 listbx.Items.Add(lstItem);
 
             }
+            usersInfoLabel.Content = users.GetCount() + " друзів  " + users.GetOnlineCount() + " онлайн";
         }
 
 
@@ -2036,16 +2032,22 @@ namespace VkAudioWpf
         private void loadFriendList()
         {
             users = new FriendList(sett.UserId, sett.VKToken);
+            FillUsers(listUserBox);
             users.OnUsersUpdated += users_OnUsersUpdated;
         }
 
         void users_OnUsersUpdated()
         {
             string selUser = users.GetSelectedUserId();
-            FillUsers(listUserBox);
+            if (listUserBox == null || listUserBox.Items.Count == 0)
+                FillUsers(listUserBox);
+            else
+            {
+                //updating
+                FillUsers(listUserBox);
+            }
             if (selUser.Trim().Length > 0)
                 listUserBox.SelectedIndex = users.SelectUserById(selUser);
-            usersInfoLabel.Content = users.GetCount() + " друзів  " + users.GetOnlineCount() + " онлайн";
         }
 
         int activeUser = -1;

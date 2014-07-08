@@ -74,14 +74,12 @@ namespace VkAudioWpf
 
         public void UpdateUsers()
         {
-            Uri uri = new Uri("https://api.vk.com/method/friends.get.xml?user_id=" + userId + "&order=hints&fields=sex, bdate, city, country,  photo_50, photo_max_orig, online, last_seen, status, counters, can_write_private_message, can_see_audio" + "&access_token=" + access_token + "&v=5.21");
+            Uri uri = new Uri("https://api.vk.com/method/friends.get.xml?user_id=" + userId + "&order=hints&fields=photo_50, online, last_seen, status, counters, can_write_private_message, can_see_audio" + "&access_token=" + access_token + "&v=5.21");
 
             var x = new XmlDocument();
             x.Load(uri.ToString());
             var receivedUsers = x.GetElementsByTagName("response")[0];
-
-            //users.Clear();
-
+            
             int length = receivedUsers.ChildNodes[1].ChildNodes.Count;
             List<User> tmpUsers = new List<User>();
             for (int i = 0; i < length; i++)
@@ -89,7 +87,7 @@ namespace VkAudioWpf
                 var user = new User(receivedUsers.ChildNodes[1].ChildNodes[i]);
                 var tmpUser = users.FirstOrDefault(z => z.id == user.id);
                 if (tmpUser != null)
-                    tmpUser.SetDataFrom(user);
+                    tmpUser.UpdateDataFrom(user);
                 else
                     users.Add(tmpUser);
 
