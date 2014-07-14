@@ -9,6 +9,15 @@ namespace VkAudioWpf
     public class AudioVK : Audio, IComparable<AudioVK>
     {
         private System.Xml.XmlNode xmlNode;
+        public string aid { get; protected set; }
+        public string owner_id { get; protected set; }
+        public string artist { get; protected set; }
+        public string title { get; protected set; }
+        public string duration { get; protected set; }
+        public string lyrics_id { get; protected set; }
+        public string album_id { get; protected set; }
+        public string genre_id { get; protected set; }
+        public bool IsAdded { get; set; }
 
         public AudioVK(System.Xml.XmlNode xmlNode)
         {
@@ -27,6 +36,14 @@ namespace VkAudioWpf
             catch
             {
                 this.lyrics_id = "";
+            }
+            try
+            {
+                this.album_id = xmlNode["album_id"].InnerText;
+            }
+            catch
+            {
+                this.album_id = "";
             }
             try
             {
@@ -89,11 +106,6 @@ namespace VkAudioWpf
             }
         }
 
-        public string aid { get; protected set; }
-        public string owner_id { get; protected set; }
-        public string artist { get; protected set; }
-        public string title { get; protected set; }
-        public string duration { get; protected set; }
 
         public string DurationString
         {
@@ -103,8 +115,6 @@ namespace VkAudioWpf
                 return tmp.Minutes + ":" + String.Format("{0:00}", tmp.Seconds);
             }
         }
-        public string lyrics_id { get; protected set; }
-        public string genre_id { get; protected set; }
 
         // Default comparer for Part type.
         public int CompareTo(AudioVK compObj)
@@ -120,6 +130,13 @@ namespace VkAudioWpf
             }
         }
 
-        public bool IsAdded { get; set; }
+
+        internal void ChangeAlbum(string id,string token)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.moveToAlbum.xml?" + "audio_ids=" + this.aid + "&album_id=" + id + "&access_token=" + token + "&v=5.21");
+
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+        }
     }
 }

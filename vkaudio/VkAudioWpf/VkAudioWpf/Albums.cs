@@ -27,7 +27,7 @@ namespace VkAudioWpf
 
             var userId = data[0];
             var token = data[1];
-            Uri uri = new Uri("https://api.vk.com/method/audio.getAlbums.xml?owner_id=" + userId + "&access_token=" + token+"&v=5.9");
+            Uri uri = new Uri("https://api.vk.com/method/audio.getAlbums.xml?owner_id=" + userId + "&access_token=" + token + "&v=5.9");
 
             var x = new XmlDocument();
             x.Load(uri.ToString());
@@ -50,10 +50,10 @@ namespace VkAudioWpf
         }
 
 
-        public void SelectAlbum(int index,string userId,string token)
+        public void SelectAlbum(int index, string userId, string token)
         {
             selectedAlbum = albums[index];
-            selectedAlbum.LoadAlbum(new []{userId,token,selectedAlbum.Id});
+            selectedAlbum.LoadAlbum(new[] { userId, token, selectedAlbum.Id });
         }
 
         public AlbumVK GetSelectedAlbum()
@@ -61,25 +61,36 @@ namespace VkAudioWpf
             return selectedAlbum;
         }
 
-        public KeyValuePair<string,string>[] GetSelectedTracksForAlbum()
+        public KeyValuePair<string, string>[] GetSelectedTracksForAlbum()
         {
-            return albums.Select(x => new KeyValuePair<string, string>(x.Id, x.playlist.GetCurrentTrackVK().aid)).ToArray();
+            return albums.Select(x => new KeyValuePair<string, string>(x.Id, x.playlist == null ? "" : x.playlist.GetCurrentTrackVK() != null ? x.playlist.GetCurrentTrackVK().aid : "")).ToArray();
         }
 
-        public void SetSelectedTracksForAlbum(KeyValuePair<string,string>[] selected)
+        public void SetSelectedTracksForAlbum(KeyValuePair<string, string>[] selected)
         {
-            foreach(var elm in selected)
+            foreach (var elm in selected)
             {
-                foreach(var alb in albums)
+                foreach (var alb in albums)
                 {
-                    if(alb.Id==elm.Key)
+                    if (alb.Id == elm.Key)
                     {
-                        alb.playlist.SelectTrackByAid(elm.Value);
+                        if (alb.playlist != null)
+                            alb.playlist.SelectTrackByAid(elm.Value);
                         break;
                     }
                 }
             }
         }
 
+
+        internal int GetIndexById(string p)
+        {
+            return albums.FindIndex(x => x.Id == p);
+        }
+
+        internal string GetIdByName(string selected)
+        {
+            return albums.First(x => x.Title == selected).Id;
+        }
     }
 }

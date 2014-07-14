@@ -394,19 +394,24 @@
                             <ProgressBar  Height="30px" Background="#FF082525" BorderBrush="#FF2D7A7A" Foreground="#FF007878" Margin="5px,0,5px,0px" Value="55" Width="570" x:Name="progressBar" MouseDown="progressBar_MouseDown"/>
                             <Label Name="endTime" HorizontalAlignment="Right" Content="0:00"/>
                         </StackPanel>
+                        <ComboBox Foreground="White" x:Name="friendCombobox" SelectionChanged="friendCombobox_SelectionChanged"></ComboBox>
                     </StackPanel>
                 </Grid>
             </Border>
             <TabControl Height="auto" Background="Silver">
                 <TabItem Header="Мої аудіо">
                     <Grid Height="auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0*"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30px"></RowDefinition>
                             <RowDefinition Height="300px"></RowDefinition>
                             <RowDefinition Height="30px"></RowDefinition>
                         </Grid.RowDefinitions>
                         <!--acccount - vk, authorize, count of tracks,sorting-->
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
                             <Button Style="{StaticResource roundedButton}" x:Name="logInButton" Click="logInButton_Click" Height="30" VerticalAlignment="Top">Авторизуватися в VK</Button>
                             <Label x:Name="usernameLabel">Ваше ім'я</Label>
 
@@ -424,8 +429,8 @@
                             <ToggleButton  Style="{StaticResource toggle}" IsChecked="True" Click="ToggleButton_Click">Транслювати в вк</ToggleButton>
                             <Button  Style="{StaticResource roundedButton}" Click="Button_Click_2">Поточний трек</Button>
                         </StackPanel>
-                        <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listBox" MouseMove="listBox_MouseMove" KeyUp="listBox_KeyUp" KeyDown="listBox_KeyDown" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listBox_SelectionChanged" Width="780"/>
-                        <StackPanel Orientation="Horizontal" Grid.Row="2">
+                        <ListBox Grid.Row="1" Margin="5,5,3,5" Background="Silver" Name="listBox" MouseMove="listBox_MouseMove" KeyUp="listBox_KeyUp" KeyDown="listBox_KeyDown" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listBox_SelectionChanged" Width="780" Grid.ColumnSpan="2"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="2">
                             <Label>Пошук в списку</Label>
                             <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="TextBox_KeyUp" Name="searchBox" KeyDown="searchBox_KeyDown"></TextBox>
                             <Button Width="30" Style="{StaticResource roundedButton}" x:Name="clearButton" Click="clearButton_Click">Х</Button>

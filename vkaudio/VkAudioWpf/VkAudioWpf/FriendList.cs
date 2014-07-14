@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -11,6 +13,7 @@ namespace VkAudioWpf
     class FriendList
     {
         protected List<User> users;
+        protected List<User> gettedUsers;
         private User selectedUser;
         private string userId;
         private string access_token;
@@ -25,8 +28,9 @@ namespace VkAudioWpf
         public FriendList(string _userId, string _access_token)
         {
             users = new List<User>();
+            gettedUsers = new List<User>();
             selectedUser = null;
-            userId=_userId;
+            userId = _userId;
             access_token = _access_token;
 
             DownloadUsers();
@@ -59,16 +63,17 @@ namespace VkAudioWpf
             var receivedUsers = x.GetElementsByTagName("response")[0];
 
             users.Clear();
+            gettedUsers.Clear();
 
             int length = receivedUsers.ChildNodes[1].ChildNodes.Count;
 
             for (int i = 0; i < length; i++)
             {
                 var user = new User(receivedUsers.ChildNodes[1].ChildNodes[i]);
-                users.Add(user);
+                gettedUsers.Add(user);
             }
 
-            users = users.OrderByDescending(us => int.Parse(us.online)).ToList();
+            users = gettedUsers.OrderByDescending(us => int.Parse(us.online)).ToList();
             users = users.OrderByDescending(us => us.status_audio_id != "").ToList();
         }
 
@@ -79,9 +84,8 @@ namespace VkAudioWpf
             var x = new XmlDocument();
             x.Load(uri.ToString());
             var receivedUsers = x.GetElementsByTagName("response")[0];
-            
+
             int length = receivedUsers.ChildNodes[1].ChildNodes.Count;
-            List<User> tmpUsers = new List<User>();
             for (int i = 0; i < length; i++)
             {
                 var user = new User(receivedUsers.ChildNodes[1].ChildNodes[i]);
@@ -90,13 +94,14 @@ namespace VkAudioWpf
                     tmpUser.UpdateDataFrom(user);
                 else
                     users.Add(tmpUser);
-
-                tmpUsers.Add(tmpUser);
             }
 
-            users=users.OrderBy(d=>tmpUsers.IndexOf(d)).ToList();
-
-            users = users.OrderByDescending(us => int.Parse(us.online)).ToList();
+            users = users.OrderBy(d => gettedUsers.IndexOf(d)).ToList();
+            try
+            {
+                users = users.OrderByDescending(us => us.online == "1").ToList();
+            }
+            catch { }
             users = users.OrderByDescending(us => us.status_audio_id != "").ToList();
         }
 
@@ -104,6 +109,10 @@ namespace VkAudioWpf
         public User[] GetUsers()
         {
             return users.ToArray();
+        }
+        public User[] GetGettedUsers()
+        {
+            return gettedUsers.ToArray();
         }
 
         internal void SelectUser(int index)
@@ -120,7 +129,7 @@ namespace VkAudioWpf
         }
         internal void UpdateUserTracks()
         {
-            if(selectedUser!=null)
+            if (selectedUser != null)
                 if (this.CanGetTracks())
                     selectedUser.DownloadTrackList(access_token);
         }
@@ -143,13 +152,19 @@ namespace VkAudioWpf
 
         internal PlayListVk GetSelectedUserPlaylist()
         {
-            return selectedUser.GetPlaylist();
+            if (selectedUser == null)
+                return null;
+            else
+                if (selectedUser.GetPlaylist() == null)
+                    return null;
+                else
+                    return selectedUser.GetPlaylist();
         }
 
 
         internal string GetCurrentUserName()
         {
-            return selectedUser.first_name+" "+selectedUser.last_name;
+            return selectedUser.first_name + " " + selectedUser.last_name;
         }
 
         public bool IsSelected
@@ -191,14 +206,48 @@ namespace VkAudioWpf
             return users.Count(x => x.online == "1");
         }
 
-        public bool IsCurrentUserFillTracks { get {
-            return selectedUser.IsFilledTracks;
-        
-        } }
+        public bool IsCurrentUserFillTracks
+        {
+            get
+            {
+                return selectedUser.IsFilledTracks;
+
+            }
+        }
 
         internal void CurrentUserFilledTracks()
         {
             this.selectedUser.FillTracks();
+        }
+
+        public async void SendTrackToFriends(AudioVK audio, string[] userIds)
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                if (userIds.Length == 0)
+                    return;
+                var attachment = "audio" + audio.owner_id + "_" + audio.aid;
+                string userTo = String.Join(",", userIds);
+                Uri uri = new Uri("https://api.vk.com/method/messages.send.xml?" + "user_ids=" + userTo + "&attachment=" + attachment + "&access_token=" + access_token + "&v=5.21");
+
+                var x = new XmlDocument();
+                x.Load(uri.ToString());
+                if (x.ChildNodes[1].Name == "error")
+                    if (x.ChildNodes[1].ChildNodes[0].InnerText == "9")
+                        System.Windows.MessageBox.Show("Ви дуже часто відправляєте трек.");
+                    else
+                        System.Windows.MessageBox.Show("Помилка при відправці.");
+
+            });
+        }
+
+        internal string SelectUserIdByName(string p)
+        {
+            User selected = gettedUsers.FirstOrDefault(x => x.first_name.Trim() + " " + x.last_name.Trim() == p);
+            if (selected != null)
+                return selected.id;
+            else
+                throw new Exception("not find user:" + p);
         }
     }
 }

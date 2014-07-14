@@ -41,7 +41,7 @@ namespace VkAudioWpf
         {
             try
             {
-                ((System.Windows.Forms.WebBrowser)(formsHost.Child)).Navigate("https://oauth.vk.com/authorize?client_id=4141993&scope=audio,status&redirect_uri=https://oauth.vk.com/blank.html&display=page&v=5.11&response_type=token");
+                ((System.Windows.Forms.WebBrowser)(formsHost.Child)).Navigate("https://oauth.vk.com/authorize?client_id=4141993&scope=audio,status,messages&redirect_uri=https://oauth.vk.com/blank.html&display=page&v=5.11&response_type=token");
             }
             catch
             {

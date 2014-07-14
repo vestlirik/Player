@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -85,6 +86,7 @@ namespace VkAudioWpf
             catch
             {
                 this.sex = "";
+                Debug.WriteLine("not added sex to " + first_name + " " + last_name);
             }
             try
             {
@@ -93,6 +95,7 @@ namespace VkAudioWpf
             catch
             {
                 this.bdate = "";
+                Debug.WriteLine("not added bdate to " + first_name + " " + last_name);
             }
             try
             {
@@ -101,6 +104,7 @@ namespace VkAudioWpf
             catch
             {
                 this.city = "";
+                Debug.WriteLine("not added city to " + first_name + " " + last_name);
             }
             try
             {
@@ -109,6 +113,7 @@ namespace VkAudioWpf
             catch
             {
                 this.country = "";
+                Debug.WriteLine("not added country to " + first_name + " " + last_name);
             }
             try
             {
@@ -117,30 +122,7 @@ namespace VkAudioWpf
             catch
             {
                 this.photo_50 = "";
-            }
-            try
-            {
-                this.photo_100 = xmlNode["photo_100"].InnerText;
-            }
-            catch
-            {
-                this.photo_100 = "";
-            }
-            try
-            {
-                this.photo_400_orig = xmlNode["photo_400_orig"].InnerText;
-            }
-            catch
-            {
-                this.photo_400_orig = "";
-            }
-            try
-            {
-                this.photo_max = xmlNode["photo_max"].InnerText;
-            }
-            catch
-            {
-                this.photo_max = "";
+                Debug.WriteLine("not added photo_50 to " + first_name + " " + last_name);
             }
             this.online = xmlNode["online"].InnerText;
             this.status = xmlNode["status"].InnerText;
@@ -159,6 +141,7 @@ namespace VkAudioWpf
                 this.status_audio_artist = "";
                 this.status_audio_title = "";
                 this.status_audio_url = "";
+                Debug.WriteLine("not added status_audio to " + first_name + " " + last_name);
             }
             this.last_seen_time = xmlNode["last_seen"]["time"].InnerText;
             this.last_seen_platform = xmlNode["last_seen"]["platform"].InnerText;

@@ -203,55 +203,7 @@ namespace vkAudio
                 Bass.BASS_SetVolume((float)value / 100);
             }
         }
-
-        //Get Fraquency of current song(only for local files!!!)
-        //public double Fraquency(string str)
-        //{
-        //    try
-        //    {
-        //        if (str.IndexOf("http") == 0)
-        //            return 0;
-        //        TagLib.File file = TagLib.File.Create(str);
-        //        return file.Properties.AudioSampleRate;
-        //    }
-        //    catch
-        //    {
-        //        return 0;
-        //    }
-        //}
-
-        ////Get Bitrate of current song(only for local files!!!)
-        //public int Bitrate(string str)
-        //{
-        //    try
-        //    {
-        //        if (str.IndexOf("http") == 0)
-        //            return 0;
-        //        TagLib.File file = TagLib.File.Create(str);
-        //        return file.Properties.AudioBitrate;
-        //    }
-        //    catch
-        //    {
-        //        return 0;
-        //    }
-        //}
-
-        ////Get artist+title of current song from Id3 tags (only for local files!!!)
-        //internal string GetName(string path)
-        //{
-        //    try
-        //    {
-        //        TagLib.File file = TagLib.File.Create(path);
-        //        if (file.Tag.Artists[0].Trim() == "" || file.Tag.Title.Trim() == "")
-        //            return "";
-        //        return toUtf8(file.Tag.Artists[0]) + " - " + toUtf8(file.Tag.Title);
-        //    }
-        //    catch
-        //    {
-        //        return "";
-        //    }
-        //}
-
+        
         private string toUtf8(string unknown)
         {
             return new string(unknown.ToCharArray().
