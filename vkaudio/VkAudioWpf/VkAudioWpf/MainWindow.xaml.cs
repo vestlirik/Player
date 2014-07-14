@@ -66,6 +66,7 @@ namespace VkAudioWpf
 
         private Albums albums;
         private FriendList users;
+        private Search search;
 
         public MainWindow()
         {
@@ -281,18 +282,21 @@ namespace VkAudioWpf
                 albums = new Albums();
                 await Task.Factory.StartNew(() => albums.DownloadAlbums(new string[] { sett.UserId, sett.VKToken }));
                 FillAlbums(albums);
-                
+
                 //my tracks
                 playlist = new PlayListVk();
                 playlistAll = playlist;
                 await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { sett.UserId, sett.VKToken }));
 
                 tracksCountLabel.Content = playlist.Count() + " треків";
-                FillListBox((PlayListVk)playlist, listBox, false, true,true);
+                FillListBox((PlayListVk)playlist, listBox, false, true, true);
 
 
                 //users
                 loadFriendList();
+
+                //search
+                search = new Search(sett.VKToken);
             }
         }
 
@@ -305,7 +309,7 @@ namespace VkAudioWpf
             }
         }
 
-        private void FillListBox(PlayListVk pls, ListBox listbx, bool allowAdding, bool allowDeleting,bool isMyAudioTab)
+        private void FillListBox(PlayListVk pls, ListBox listbx, bool allowAdding, bool allowDeleting, bool isMyAudioTab)
         {
             listbx.Items.Clear();
             foreach (var elm in pls.GetTrackListVK())
@@ -396,17 +400,17 @@ namespace VkAudioWpf
                 #endregion
 
                 #region album combobox
-                if(isMyAudioTab)
+                if (isMyAudioTab)
                 {
                     ComboBox cbx = new ComboBox();
                     cbx.IsReadOnly = true;
-                    var albms=albums.GetAlbums();
+                    var albms = albums.GetAlbums();
                     cbx.Items.Add("");
                     foreach (var alb in albms)
                         cbx.Items.Add(alb);
-                    if(elm.album_id.Trim()!="")
+                    if (elm.album_id.Trim() != "")
                     {
-                        cbx.SelectedIndex = albums.GetIndexById(elm.album_id)+1;
+                        cbx.SelectedIndex = albums.GetIndexById(elm.album_id) + 1;
                     }
 
                     cbx.SelectionChanged += (object sender, SelectionChangedEventArgs e) =>
@@ -414,7 +418,7 @@ namespace VkAudioWpf
                         string selected = cbx.SelectedItem.ToString();
                         if (selected.Trim() != "")
                         {
-                            elm.ChangeAlbum(id: albums.GetIdByName(selected),token:sett.VKToken);
+                            elm.ChangeAlbum(id: albums.GetIdByName(selected), token: sett.VKToken);
                         }
                         else
                             elm.ChangeAlbum(id: "", token: sett.VKToken);
@@ -423,7 +427,7 @@ namespace VkAudioWpf
                     Grid.SetColumn(cbx, colemn);
                     colemn++;
                     grid.Children.Add(cbx);
- 
+
                 }
                 #endregion
 
@@ -482,13 +486,15 @@ namespace VkAudioWpf
                     lstItem.MouseDoubleClick += lstItemAlbum_MouseDoubleClick;
                 if (listbx == listUserTracksBox)
                     lstItem.MouseDoubleClick += lstItemUser_MouseDoubleClick;
+                if (listbx == listSearchedTracksBox)
+                    lstItem.MouseDoubleClick += lstItemSearch_MouseDoubleClick;
                 //lstItem.MouseEnter += lstItem_MouseEnter;
 
                 listbx.Items.Add(lstItem);
 
             }
         }
-        
+
         private void FillUsers(ListBox listbx)
         {
             listbx.Items.Clear();
@@ -615,6 +621,15 @@ namespace VkAudioWpf
         {
             playlist = users.GetSelectedUserPlaylist();
             playlist.SelTrack = listUserTracksBox.SelectedIndex;
+            if (checkBoxShuffle.IsChecked == true)
+                if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
+                    cherga.Add(playlist.SelTrack);
+            PlayTrack();
+        }
+        void lstItemSearch_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            playlist = search.Playlist;
+            playlist.SelTrack = listSearchedTracksBox.SelectedIndex;
             if (checkBoxShuffle.IsChecked == true)
                 if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
                     cherga.Add(playlist.SelTrack);
@@ -758,14 +773,14 @@ namespace VkAudioWpf
             if (playlist == playlistAll)
                 listBox.SelectedIndex = playlist.SelTrack;
             else
-                if (albums.GetSelectedAlbum() != null)
-                {
-                    if (playlist == albums.GetSelectedAlbum().playlist)
-                        listAlbumBox.SelectedIndex = playlist.SelTrack;
-                }
+                if (albums.GetSelectedAlbum() != null && playlist == albums.GetSelectedAlbum().playlist)
+                    listAlbumBox.SelectedIndex = playlist.SelTrack;
                 else
                     if (playlist == users.GetSelectedUserPlaylist())
                         listUserTracksBox.SelectedIndex = playlist.SelTrack;
+                    else
+                        if (playlist == search.Playlist)
+                            listSearchedTracksBox.SelectedIndex = playlist.SelTrack;
 
             player.Play();
 
@@ -1413,7 +1428,7 @@ namespace VkAudioWpf
             }
             else
                 ((PlayListVk)playlist).ReverseOff();
-            FillListBox((PlayListVk)playlist, listBox, false, true,true);
+            FillListBox((PlayListVk)playlist, listBox, false, true, true);
             if (currTrack != null)
             {
                 ((PlayListVk)playlist).SelectTrackByAid(selTrack);
@@ -1436,7 +1451,7 @@ namespace VkAudioWpf
                     if (sortCombobox.SelectedIndex == 1)
                         ((PlayListVk)playlist).SortByName();
 
-                FillListBox((PlayListVk)playlist, listBox, false, true,true);
+                FillListBox((PlayListVk)playlist, listBox, false, true, true);
                 if (currTrack != null)
                 {
                     ((PlayListVk)playlist).SelectTrackByAid(selTrack);
@@ -1489,7 +1504,7 @@ namespace VkAudioWpf
 
             tracksCountLabel.Content = playlist.Count() + " треків";
 
-            FillListBox((PlayListVk)playlist, listBox, false, true,true);
+            FillListBox((PlayListVk)playlist, listBox, false, true, true);
             if (currTrack != null)
             {
                 ((PlayListVk)playlist).SelectTrackByAid(selTrack);
@@ -1812,7 +1827,7 @@ namespace VkAudioWpf
             {
                 albums.SelectAlbum(albumsCombobox.SelectedIndex, sett.UserId, sett.VKToken);
                 tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
-                FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true,false);
+                FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true, false);
                 Button_Click_3(this, new RoutedEventArgs());
             }
         }
@@ -1840,7 +1855,7 @@ namespace VkAudioWpf
                         if (sortInAlbumCombobox.SelectedIndex == 1)
                             pls.SortByName();
 
-                    FillListBox(pls, listAlbumBox, false, true,false);
+                    FillListBox(pls, listAlbumBox, false, true, false);
                     if (currTrack != null)
                     {
                         pls.SelectTrackByAid(selTrack);
@@ -1863,7 +1878,7 @@ namespace VkAudioWpf
             }
             else
                 pls.ReverseOff();
-            FillListBox(pls, listAlbumBox, false, true,false);
+            FillListBox(pls, listAlbumBox, false, true, false);
             if (currTrack != null)
             {
                 pls.SelectTrackByAid(selTrack);
@@ -1894,7 +1909,7 @@ namespace VkAudioWpf
 
             tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
             albums.SetSelectedTracksForAlbum(selectedTracks);
-            FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true,false);
+            FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true, false);
 
             listAlbumBox.SelectedIndex = albums.GetSelectedAlbum().playlist.SelTrack;
 
@@ -2114,14 +2129,14 @@ namespace VkAudioWpf
                     tracksUserCountLabel.Content = users.GetSelectedUserPlaylist().Count() + " треків " + users.GetCurrentUserName();
                     if (activeUser != listUserBox.SelectedIndex)
                     {
-                        FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false,false);
+                        FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false, false);
                         users.CurrentUserFilledTracks();
                         GetCurrentUserTrack_Click(sender, e);
                     }
                     else
                         if (!users.IsCurrentUserFillTracks)
                         {
-                            FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false,false);
+                            FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false, false);
                             users.CurrentUserFilledTracks();
                             GetCurrentUserTrack_Click(sender, e);
                         }
@@ -2141,7 +2156,7 @@ namespace VkAudioWpf
             {
                 this.users.UpdateUserTracks();
                 tracksUserCountLabel.Content = users.GetSelectedUserPlaylist().Count() + " треків " + users.GetCurrentUserName();
-                FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false,false);
+                FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false, false);
                 users.CurrentUserFilledTracks();
                 GetCurrentUserTrack_Click(sender, e);
             }
@@ -2169,7 +2184,7 @@ namespace VkAudioWpf
                         if (sortInUserTracksCombobox.SelectedIndex == 1)
                             pls.SortByName();
 
-                    FillListBox(pls, listUserTracksBox, true, false,false);
+                    FillListBox(pls, listUserTracksBox, true, false, false);
                     users.CurrentUserFilledTracks();
                     if (currTrack != null)
                     {
@@ -2195,7 +2210,7 @@ namespace VkAudioWpf
                 }
                 else
                     pls.ReverseOff();
-                FillListBox(pls, listAlbumBox, true, false,false);
+                FillListBox(pls, listAlbumBox, true, false, false);
                 users.CurrentUserFilledTracks();
                 if (currTrack != null)
                 {
@@ -2322,19 +2337,39 @@ namespace VkAudioWpf
                 friendCombobox.SelectedIndex = -1;
                 try
                 {
-                    if (playlist == playlistAll)
-                        users.SendTrackToFriends(playlistAll.GetCurrentTrackVK(), arrUsers.ToArray());
-                    if (albums.GetSelectedAlbum() != null)
-                        if (playlist == albums.GetSelectedAlbum().playlist)
-                            users.SendTrackToFriends(albums.GetSelectedAlbum().playlist.GetCurrentTrackVK(), arrUsers.ToArray());
-                    if (playlist == users.GetSelectedUserPlaylist())
-                        users.SendTrackToFriends(users.GetSelectedUserPlaylist().GetCurrentTrackVK(), arrUsers.ToArray());
+                    users.SendTrackToFriends(playlist.GetCurrentTrackVK(), arrUsers.ToArray());
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
                 }
 
+            }
+        }
+
+        private void ClearQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            searchQueryTextBox.Clear();
+        }
+
+        private void SearchQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            search.SearchTracks(searchQueryTextBox.Text.Trim());
+            searchedCountLabel.Content = search.GetSearchedCount() + " треків " + "\"" + search.Query + "\"";
+            FillListBox(search.Playlist, listSearchedTracksBox, true, false, false);
+        }
+
+        private void listSearchedTracksBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            listSearchedTracksBox.ScrollIntoView(listSearchedTracksBox.SelectedItem);
+        }
+
+        private void GetCurrentSearchTrack_Click(object sender, RoutedEventArgs e)
+        {
+            if (search != null && search.Query.Length > 0)
+            {
+                listSearchedTracksBox.SelectedIndex = -1;
+                listSearchedTracksBox.SelectedIndex = search.Playlist.SelTrack;
             }
         }
 

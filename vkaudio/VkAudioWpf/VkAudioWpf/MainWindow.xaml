@@ -401,10 +401,6 @@
             <TabControl Height="auto" Background="Silver">
                 <TabItem Header="Мої аудіо">
                     <Grid Height="auto">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0*"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30px"></RowDefinition>
                             <RowDefinition Height="300px"></RowDefinition>
@@ -413,7 +409,7 @@
                         <!--acccount - vk, authorize, count of tracks,sorting-->
                         <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
                             <Button Style="{StaticResource roundedButton}" x:Name="logInButton" Click="logInButton_Click" Height="30" VerticalAlignment="Top">Авторизуватися в VK</Button>
-                            <Label x:Name="usernameLabel">Ваше ім'я</Label>
+                            <Label x:Name="usernameLabel" Content="Ваше ім'я"/>
 
                             <Button Style="{StaticResource roundedButton}" x:Name="updateButton" Click="updateButton_Click">Оновити</Button>
                             <Button Style="{StaticResource roundedButton}" x:Name="offlineButton" Click="offlineButton_Click">Оффлайн</Button>
@@ -514,9 +510,35 @@
 
                     </Grid>
                 </TabItem>
-                <TabItem Header="Рекомендовані"></TabItem>
-                <TabItem Header="Популярні"></TabItem>
-                <TabItem Header="Рошук"></TabItem>
+                <!--<TabItem Header="Рекомендовані"></TabItem>
+                <TabItem Header="Популярні"></TabItem>-->
+                <TabItem Header="Рошук">
+                    <Grid Height="auto">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30px"></RowDefinition>
+                            <RowDefinition Height="300px"></RowDefinition>
+                            <RowDefinition Height="30px"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox  Background="DarkGray" Foreground="White"  Width="400" x:Name="searchQueryTextBox"></TextBox>
+
+                            <Button Style="{StaticResource roundedButton}" Width="30" x:Name="ClearQueryButton" Click="ClearQueryButton_Click">X</Button>
+                            <Button Style="{StaticResource roundedButton}" x:Name="SearchQueryButton" Click="SearchQueryButton_Click">Шукати</Button>
+
+                            <Label x:Name="searchedCountLabel">0 треків</Label>
+                            <Button  Style="{StaticResource roundedButton}" x:Name="GetCurrentSearchTrack" Click="GetCurrentSearchTrack_Click">Поточний трек</Button>
+                        </StackPanel>
+                        <ListBox Grid.Row="1" Margin="5" Background="Silver"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" x:Name="listSearchedTracksBox" SelectionChanged="listSearchedTracksBox_SelectionChanged" Width="780"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2">
+                            <Label>Пошук в списку</Label>
+                            <TextBox Width="250" Background="DarkGray" Foreground="White"></TextBox>
+                            <Button Width="30" Style="{StaticResource roundedButton}">Х</Button>
+                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" ></Button>
+                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" ></Button>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
             </TabControl>
         </StackPanel>
     </Border>

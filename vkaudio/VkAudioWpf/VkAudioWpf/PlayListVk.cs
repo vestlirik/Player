@@ -89,6 +89,26 @@ namespace VkAudioWpf
                 tracks.Add(audio);
             }
         }
+        internal void DownloadTracksByQuery(string token, string queryString)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.search.xml?q=" + queryString + "&count=300" + "&access_token=" + token + "&v=5.9");
+
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+            var audioElements = x.ChildNodes[1].ChildNodes[1];
+
+            tracks.Clear();
+
+            int length = audioElements.ChildNodes.Count;
+
+            for (int i = 0; i < length; i++)
+            {
+                var audio = new AudioVK(audioElements.ChildNodes[i]);
+                tracks.Add(audio);
+            }
+        }
+
+        
 
         public List<AudioVK> GetTrackListVK()
         {
@@ -170,6 +190,7 @@ namespace VkAudioWpf
                 }
             }
         }
+
 
     }
 }
