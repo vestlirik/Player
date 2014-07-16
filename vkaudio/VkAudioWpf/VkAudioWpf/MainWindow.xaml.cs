@@ -67,6 +67,7 @@ namespace VkAudioWpf
         private Albums albums;
         private FriendList users;
         private Search search;
+        private Reccomendations recommendations;
 
         public MainWindow()
         {
@@ -297,6 +298,9 @@ namespace VkAudioWpf
 
                 //search
                 search = new Search(sett.VKToken);
+                //recommeds
+                recommendations = new Reccomendations(sett.VKToken);
+                UpdateRecommendations();
             }
         }
 
@@ -437,7 +441,8 @@ namespace VkAudioWpf
 
                 btn.Click += (object send, RoutedEventArgs ee) =>
                 {
-                    DownloadFile(elm.GetLocation, elm.Name);
+                    ((Button)send).IsEnabled = false;
+                    DownloadFile(elm.GetLocation, elm.Name, (Button)send);
                 };
 
                 Grid.SetColumn(btn, colemn);
@@ -466,10 +471,11 @@ namespace VkAudioWpf
                 #endregion
 
                 lstItem.Content = grid;
+                var cntMenu = new ContextMenu();
+                MenuItem mi;
                 if (elm.HasLyrics)
                 {
-                    var cntMenu = new ContextMenu();
-                    MenuItem mi = new MenuItem();
+                    mi = new MenuItem();
                     mi.Header = "Показати текст";
                     mi.Click += new RoutedEventHandler((sender, e) =>
                     {
@@ -477,8 +483,35 @@ namespace VkAudioWpf
                         t.Start();
                     });
                     cntMenu.Items.Add(mi);
-                    lstItem.ContextMenu = cntMenu;
                 }
+
+                mi = new MenuItem();
+                mi.Header = "Знайти інші треки " + elm.artist.Substring(0, elm.artist.Length > 20 ? 20 : elm.artist.Length);
+                mi.Click += new RoutedEventHandler((sender, e) =>
+                {
+                    searchQueryTextBox.Text = elm.artist;
+                    searchTab.Focus();
+                    SearchQueryButton_Click(null, null);
+                });
+                cntMenu.Items.Add(mi);
+
+                mi = new MenuItem();
+                mi.Header = "Рекомендовані треки " + elm.artist.Substring(0, elm.artist.Length > 20 ? 20 : elm.artist.Length);
+                mi.Click += new RoutedEventHandler(async(sender, e) =>
+                {
+                    reccomedTab.Focus();
+                    await Task.Factory.StartNew(() => recommendations.LoadReccomendationsByAudio(elm));
+                    if (recommendations.Playlist.Count() == 0)
+                    {
+                        MessageBox.Show("Немає рекомендації до цього треку.");
+                        recommendations.LoadReccomendations();
+                    }
+                    FillListBox(recommendations.Playlist, listRecommedTracksBox, true, false, false);
+                    recommedCountLabel.Content = recommendations.GetSearchedCount() + " треків";
+                });
+
+                cntMenu.Items.Add(mi);
+                lstItem.ContextMenu = cntMenu;
 
                 if (listbx == listBox)
                     lstItem.MouseDoubleClick += lstItem_MouseDoubleClick;
@@ -488,6 +521,8 @@ namespace VkAudioWpf
                     lstItem.MouseDoubleClick += lstItemUser_MouseDoubleClick;
                 if (listbx == listSearchedTracksBox)
                     lstItem.MouseDoubleClick += lstItemSearch_MouseDoubleClick;
+                if (listbx == listRecommedTracksBox)
+                    lstItem.MouseDoubleClick += lstItemRecommed_MouseDoubleClick;
                 //lstItem.MouseEnter += lstItem_MouseEnter;
 
                 listbx.Items.Add(lstItem);
@@ -635,6 +670,16 @@ namespace VkAudioWpf
                     cherga.Add(playlist.SelTrack);
             PlayTrack();
         }
+        void lstItemRecommed_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            playlist = recommendations.Playlist;
+            playlist.SelTrack = listRecommedTracksBox.SelectedIndex;
+            if (checkBoxShuffle.IsChecked == true)
+                if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
+                    cherga.Add(playlist.SelTrack);
+            PlayTrack();
+        }
+        
 
 
         private void prevButton_Click(object sender, RoutedEventArgs e)
@@ -781,6 +826,9 @@ namespace VkAudioWpf
                     else
                         if (playlist == search.Playlist)
                             listSearchedTracksBox.SelectedIndex = playlist.SelTrack;
+                        else
+                            if (playlist == recommendations.Playlist)
+                                listRecommedTracksBox.SelectedIndex = playlist.SelTrack;
 
             player.Play();
 
@@ -1385,11 +1433,11 @@ namespace VkAudioWpf
             return ss;
         }
 
-        private void DownloadFile(string url, string name)
+        private void DownloadFile(string url, string name, Button button)
         {
             new Thread(() =>
                 {
-                    string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + "\\Zeus\\";
+                    string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + "\\Downloads\\Zeus\\";
                     if (!Directory.Exists(path))
                     {
                         Directory.CreateDirectory(path);
@@ -1397,6 +1445,13 @@ namespace VkAudioWpf
                     WebClient wb = new WebClient();
                     name.Replace("\"", "");
                     wb.DownloadFile(new Uri(url), path + name + ".mp3");
+                    wb.Dispose();
+                    this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                    {
+                        MessageBox.Show(name + " завантажена до папки Downloads/Zeus");
+                        button.IsEnabled = true;
+                        return null;
+                    }), null);
                 }).Start();
         }
 
@@ -1460,7 +1515,7 @@ namespace VkAudioWpf
             }
         }
 
-        private string RemoveOtherSymbols(string inputStr)
+        public static string RemoveOtherSymbols(string inputStr)
         {
             string outputStr = "";
             for (int i = 0; i < inputStr.Length; i++)
@@ -2099,7 +2154,7 @@ namespace VkAudioWpf
 
         void users_OnUsersUpdated()
         {
-            try
+        again: try
             {
                 string selUser = users.GetSelectedUserId();
                 if (listUserBox == null || listUserBox.Items.Count == 0)
@@ -2114,7 +2169,8 @@ namespace VkAudioWpf
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.InnerException + "\n" + ex.Source + "\n" + ex.TargetSite);
+                GetAuth();
+                goto again;
             }
         }
 
@@ -2265,6 +2321,24 @@ namespace VkAudioWpf
                 }
         }
 
+        private void searchInUserBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                if (searchInUserTracksBox.Text.Trim() != "" && listUserBox.SelectedIndex != -1)
+                {
+                    DoubleUserListBoxClick();
+                }
+        }
+        private void DoubleUserListBoxClick()
+        {
+            playlist = users.GetSelectedUserPlaylist();
+            playlist.SelTrack = listUserBox.SelectedIndex;
+            if (checkBoxShuffle.IsChecked == true)
+                if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
+                    cherga.Add(playlist.SelTrack);
+            PlayTrack();
+        }
+
         private void clearInSearchUserTracksButton_Click(object sender, RoutedEventArgs e)
         {
             searchInUserTracksBox.Clear();
@@ -2357,6 +2431,12 @@ namespace VkAudioWpf
             search.SearchTracks(searchQueryTextBox.Text.Trim());
             searchedCountLabel.Content = search.GetSearchedCount() + " треків " + "\"" + search.Query + "\"";
             FillListBox(search.Playlist, listSearchedTracksBox, true, false, false);
+            listSearchedTracksBox.SelectedIndex = -1;
+            if (listSearchedTracksBox.Items.Count > 0)
+            {
+                listSearchedTracksBox.SelectedIndex = 0;
+                listSearchedTracksBox.SelectedIndex = -1;
+            }
         }
 
         private void listSearchedTracksBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2373,5 +2453,137 @@ namespace VkAudioWpf
             }
         }
 
+        private void searchQueryTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                SearchQueryButton_Click(null, null);
+        }
+
+        private void searchInSearchedTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            var pls = search.Playlist;
+            if ((e.Key < Key.A && e.Key > Key.Z) || (e.Key < Key.D0 && e.Key > Key.D9))
+            {
+                e.Handled = true;
+                return;
+            }
+            if (e.Key != Key.Enter)
+                if (e.Key != Key.LeftAlt && e.Key != Key.LeftCtrl)
+                {
+                    if (pls != null && pls.Count() > 0)
+                    {
+                        var searchText = searchInSearchedTextBox.Text.Trim();
+                        if (searchText == "")
+                        {
+                            listSearchedTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                        for (int i = 0; i < pls.Count(); i++)
+                        {
+                            if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                listSearchedTracksBox.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+        }
+
+        private void searchInSearchedTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                if (searchInSearchedTextBox.Text.Trim() != "" && listSearchedTracksBox.SelectedIndex != -1)
+                {
+                    DoubleSearchListBoxClick();
+                }
+        }
+        private void DoubleSearchListBoxClick()
+        {
+            playlist = search.Playlist;
+            playlist.SelTrack = listSearchedTracksBox.SelectedIndex;
+            if (checkBoxShuffle.IsChecked == true)
+                if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
+                    cherga.Add(playlist.SelTrack);
+            PlayTrack();
+        }
+
+        private void SearchInSearchedClear_Click(object sender, RoutedEventArgs e)
+        {
+            searchInSearchedTextBox.Clear();
+            listSearchedTracksBox.SelectedIndex = search.Playlist.SelTrack;
+        }
+
+        private void SearchInSearchedPrev_Click(object sender, RoutedEventArgs e)
+        {
+            var pls = search.Playlist;
+            var searchText = searchInSearchedTextBox.Text.Trim();
+            if (pls != null && pls.Count() > 0)
+                if (searchText != "" && listSearchedTracksBox.SelectedIndex != -1)
+                {
+                    for (int i = listSearchedTracksBox.SelectedIndex - 1; i > 0; i--)
+                    {
+                        if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listSearchedTracksBox.SelectedIndex = i;
+                            break;
+                        }
+                        if (i == 0)
+                        {
+                            listSearchedTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                    }
+                }
+            searchInSearchedTextBox.Focus();
+        }
+
+        private void SearchInSearchedNext_Click(object sender, RoutedEventArgs e)
+        {
+            var pls = search.Playlist;
+            var searchText = searchInSearchedTextBox.Text.Trim();
+            if (pls != null && pls.Count() > 0)
+                if (searchText != "" && listSearchedTracksBox.SelectedIndex != -1)
+                {
+                    for (int i = listSearchedTracksBox.SelectedIndex + 1; i < listSearchedTracksBox.Items.Count; i++)
+                    {
+                        if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listSearchedTracksBox.SelectedIndex = i;
+                            break;
+                        }
+                        if (i == listSearchedTracksBox.Items.Count)
+                        {
+                            listSearchedTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                    }
+                }
+            searchInSearchedTextBox.Focus();
+        }
+
+        private async void UpdateRecommendations()
+        {
+            await Task.Factory.StartNew(() => recommendations.LoadReccomendations());
+            FillListBox(recommendations.Playlist, listRecommedTracksBox, true, false, false);
+            recommedCountLabel.Content = recommendations.GetSearchedCount() + " треків";
+        }
+
+        private void RecommendCurrentTrackButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (recommendations.Playlist.SelTrack != -1)
+                listRecommedTracksBox.SelectedIndex = recommendations.Playlist.SelTrack;
+        }
+
+        private void RecommendUpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateRecommendations();
+            listRecommedTracksBox.SelectedIndex = -1;
+            if (listRecommedTracksBox.Items.Count > 0)
+            {
+                listRecommedTracksBox.SelectedIndex = 0;
+                listRecommedTracksBox.SelectedIndex = -1;
+            }
+        }
     }
 }

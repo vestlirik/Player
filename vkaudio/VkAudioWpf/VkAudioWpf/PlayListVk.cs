@@ -191,6 +191,51 @@ namespace VkAudioWpf
             }
         }
 
+        public void Add(AudioVK track)
+        {
+            tracks.Add(track);
+        }
 
+        internal void Clear()
+        {
+            tracks.Clear();
+        }
+
+        internal void DownloadReccomendations(string vkToken)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.getRecommendations.xml?count=300&shuffle=1" + "&access_token=" + vkToken + "&v=5.9");
+
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+            var audioElements = x.ChildNodes[1].ChildNodes[1];
+
+            tracks.Clear();
+
+            int length = audioElements.ChildNodes.Count;
+
+            for (int i = 0; i < length; i++)
+            {
+                var audio = new AudioVK(audioElements.ChildNodes[i]);
+                tracks.Add(audio);
+            }
+        }
+        internal void DownloadReccomendations(string vkToken,AudioVK selAudio)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.getRecommendations.xml?target_audio=" + selAudio.owner_id + "_" + selAudio.aid + "&count=300&shuffle=1" + "&access_token=" + vkToken + "&v=5.9");
+
+            var x = new XmlDocument();
+            x.Load(uri.ToString());
+            var audioElements = x.ChildNodes[1].ChildNodes[1];
+
+            tracks.Clear();
+
+            int length = audioElements.ChildNodes.Count;
+
+            for (int i = 0; i < length; i++)
+            {
+                var audio = new AudioVK(audioElements.ChildNodes[i]);
+                tracks.Add(audio);
+            }
+        }
     }
 }

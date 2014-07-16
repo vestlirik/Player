@@ -501,7 +501,7 @@
                             <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listUserTracksBox" MouseMove="listAlbumBox_MouseMove"  KeyUp="listAlbumBox_KeyUp"  KeyDown="listAlbumBox_KeyDown"  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listUserTracksBox_SelectionChanged"  Width="530"/>
                             <StackPanel Orientation="Horizontal" Grid.Row="2">
                                 <Label>Пошук в списку</Label>
-                                <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInUserTracksBox_KeyUp"  Name="searchInUserTracksBox" KeyDown="searchInAlbumBox_KeyDown"></TextBox>
+                                <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInUserTracksBox_KeyUp"  Name="searchInUserTracksBox" KeyDown="searchInUserBox_KeyDown"></TextBox>
                                 <Button Width="30" Style="{StaticResource roundedButton}" x:Name="clearInSearchUserTracksButton" Click="clearInSearchUserTracksButton_Click">Х</Button>
                                 <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksPrev" Click="searchInUserTracksPrev_Click"></Button>
                                 <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" Name="searchInUserTracksNext" Click="searchInUserTracksNext_Click"></Button>
@@ -510,9 +510,7 @@
 
                     </Grid>
                 </TabItem>
-                <!--<TabItem Header="Рекомендовані"></TabItem>
-                <TabItem Header="Популярні"></TabItem>-->
-                <TabItem Header="Рошук">
+                <TabItem Header="Рекомендовані" x:Name="reccomedTab">
                     <Grid Height="auto">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30px"></RowDefinition>
@@ -520,7 +518,31 @@
                             <RowDefinition Height="30px"></RowDefinition>
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal">
-                            <TextBox  Background="DarkGray" Foreground="White"  Width="400" x:Name="searchQueryTextBox"></TextBox>
+                            <Label x:Name="recommedCountLabel">0 треків</Label>
+                            <Button  Style="{StaticResource roundedButton}" x:Name="RecommendCurrentTrackButton" Click="RecommendCurrentTrackButton_Click">Поточний трек</Button>
+                            <Button  Style="{StaticResource roundedButton}" x:Name="RecommendUpdateButton" Click="RecommendUpdateButton_Click">Оновити рекомендації</Button>
+                        </StackPanel>
+                        <ListBox Grid.Row="1" Margin="5" Background="Silver"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" x:Name="listRecommedTracksBox" SelectionChanged="listSearchedTracksBox_SelectionChanged" Width="780"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2">
+                            <Label>Пошук в списку</Label>
+                            <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInSearchedTextBox_KeyUp" KeyDown="searchInSearchedTextBox_KeyDown"></TextBox>
+                            <Button Width="30" Style="{StaticResource roundedButton}"  Click="SearchInSearchedClear_Click">Х</Button>
+                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}"  Click="SearchInSearchedPrev_Click"></Button>
+                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}"  Click="SearchInSearchedNext_Click"></Button>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+                <!--<TabItem Header="Популярні"></TabItem>-->
+                <TabItem Header="Рошук" x:Name="searchTab">
+                    <Grid Height="auto">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30px"></RowDefinition>
+                            <RowDefinition Height="300px"></RowDefinition>
+                            <RowDefinition Height="30px"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox  Background="DarkGray" Foreground="White"  Width="400" x:Name="searchQueryTextBox" KeyDown="searchQueryTextBox_KeyDown"></TextBox>
 
                             <Button Style="{StaticResource roundedButton}" Width="30" x:Name="ClearQueryButton" Click="ClearQueryButton_Click">X</Button>
                             <Button Style="{StaticResource roundedButton}" x:Name="SearchQueryButton" Click="SearchQueryButton_Click">Шукати</Button>
@@ -532,10 +554,10 @@
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" x:Name="listSearchedTracksBox" SelectionChanged="listSearchedTracksBox_SelectionChanged" Width="780"/>
                         <StackPanel Orientation="Horizontal" Grid.Row="2">
                             <Label>Пошук в списку</Label>
-                            <TextBox Width="250" Background="DarkGray" Foreground="White"></TextBox>
-                            <Button Width="30" Style="{StaticResource roundedButton}">Х</Button>
-                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" ></Button>
-                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" ></Button>
+                            <TextBox Width="250" Background="DarkGray" Foreground="White" x:Name="searchInSearchedTextBox" KeyUp="searchInSearchedTextBox_KeyUp" KeyDown="searchInSearchedTextBox_KeyDown"></TextBox>
+                            <Button Width="30" Style="{StaticResource roundedButton}" x:Name="SearchInSearchedClear" Click="SearchInSearchedClear_Click">Х</Button>
+                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" x:Name="SearchInSearchedPrev" Click="SearchInSearchedPrev_Click"></Button>
+                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" x:Name="SearchInSearchedNext" Click="SearchInSearchedNext_Click"></Button>
                         </StackPanel>
                     </Grid>
                 </TabItem>

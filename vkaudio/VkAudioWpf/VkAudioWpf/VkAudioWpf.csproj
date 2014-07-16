@@ -94,6 +94,7 @@
     <Compile Include="Albums.cs" />
     <Compile Include="AlbumVK.cs" />
     <Compile Include="FriendList.cs" />
+    <Compile Include="Reccomendations.cs" />
     <Compile Include="Search.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="User.cs" />
