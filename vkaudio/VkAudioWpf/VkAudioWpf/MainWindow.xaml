@@ -394,7 +394,19 @@
                             <ProgressBar  Height="30px" Background="#FF082525" BorderBrush="#FF2D7A7A" Foreground="#FF007878" Margin="5px,0,5px,0px" Value="55" Width="570" x:Name="progressBar" MouseDown="progressBar_MouseDown"/>
                             <Label Name="endTime" HorizontalAlignment="Right" Content="0:00"/>
                         </StackPanel>
-                        <ComboBox Foreground="White" x:Name="friendCombobox" SelectionChanged="friendCombobox_SelectionChanged"></ComboBox>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource roundedButton}" x:Name="logInButton" Click="logInButton_Click" Height="30" VerticalAlignment="Top">Авторизуватися в VK</Button>
+                            <Label x:Name="usernameLabel" Content="Ваше ім'я"/>
+                            <Button Style="{StaticResource roundedButton}" x:Name="offlineButton" Click="offlineButton_Click">Оффлайн</Button>
+
+                            <Button Style="{StaticResource roundedButton}" x:Name="logOutButton" Click="logOutButton_Click">Вийти</Button>
+                            <Button Style="{StaticResource roundedButton}" x:Name="logInLastButton" Click="logInLastButton_Click">Вхід Last.fm</Button>
+                            <ToggleButton  Style="{StaticResource toggle}" IsChecked="True" Click="ToggleButton_Click">Транслювати в вк</ToggleButton>
+                            <Label>Відправити:</Label>
+                            <ComboBox Foreground="White" x:Name="friendCombobox" SelectionChanged="friendCombobox_SelectionChanged" Width="200"></ComboBox>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -408,21 +420,16 @@
                         </Grid.RowDefinitions>
                         <!--acccount - vk, authorize, count of tracks,sorting-->
                         <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
-                            <Button Style="{StaticResource roundedButton}" x:Name="logInButton" Click="logInButton_Click" Height="30" VerticalAlignment="Top">Авторизуватися в VK</Button>
-                            <Label x:Name="usernameLabel" Content="Ваше ім'я"/>
+                            
 
                             <Button Style="{StaticResource roundedButton}" x:Name="updateButton" Click="updateButton_Click">Оновити</Button>
-                            <Button Style="{StaticResource roundedButton}" x:Name="offlineButton" Click="offlineButton_Click">Оффлайн</Button>
-
-                            <Button Style="{StaticResource roundedButton}" x:Name="logOutButton" Click="logOutButton_Click">Вийти</Button>
-                            <Button Style="{StaticResource roundedButton}" x:Name="logInLastButton" Click="logInLastButton_Click">Вхід Last.fm</Button>
+                            
                             <Label x:Name="tracksCountLabel">0 треків</Label>
                             <ComboBox SelectedIndex="0" VerticalAlignment="Center" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" Name="sortCombobox">
                                 <ComboBoxItem>За датою додавання</ComboBoxItem>
                                 <ComboBoxItem>За назвою</ComboBoxItem>
                             </ComboBox>
                             <ToggleButton  Style="{StaticResource toggle}" Name="reverseButton" Click="ToggleButton_Click_1">Z->A</ToggleButton>
-                            <ToggleButton  Style="{StaticResource toggle}" IsChecked="True" Click="ToggleButton_Click">Транслювати в вк</ToggleButton>
                             <Button  Style="{StaticResource roundedButton}" Click="Button_Click_2">Поточний трек</Button>
                         </StackPanel>
                         <ListBox Grid.Row="1" Margin="5,5,3,5" Background="Silver" Name="listBox" MouseMove="listBox_MouseMove" KeyUp="listBox_KeyUp" KeyDown="listBox_KeyDown" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listBox_SelectionChanged" Width="780" Grid.ColumnSpan="2"/>
@@ -523,13 +530,13 @@
                             <Button  Style="{StaticResource roundedButton}" x:Name="RecommendUpdateButton" Click="RecommendUpdateButton_Click">Оновити рекомендації</Button>
                         </StackPanel>
                         <ListBox Grid.Row="1" Margin="5" Background="Silver"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" x:Name="listRecommedTracksBox" SelectionChanged="listSearchedTracksBox_SelectionChanged" Width="780"/>
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" x:Name="listRecommedTracksBox" SelectionChanged="listRecommedTracksBox_SelectionChanged"  Width="780"/>
                         <StackPanel Orientation="Horizontal" Grid.Row="2">
                             <Label>Пошук в списку</Label>
-                            <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInSearchedTextBox_KeyUp" KeyDown="searchInSearchedTextBox_KeyDown"></TextBox>
-                            <Button Width="30" Style="{StaticResource roundedButton}"  Click="SearchInSearchedClear_Click">Х</Button>
-                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}"  Click="SearchInSearchedPrev_Click"></Button>
-                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}"  Click="SearchInSearchedNext_Click"></Button>
+                            <TextBox Width="250" Background="DarkGray" Foreground="White" x:Name="searchInRecommed" KeyUp="searchInRecommed_KeyUp"  KeyDown="searchInRecommed_KeyDown"></TextBox>
+                            <Button Width="30" Style="{StaticResource roundedButton}" x:Name="searchInRecommedClear" Click="searchInRecommedClear_Click">Х</Button>
+                            <Button Width="40" Content="&lt;&lt;" Style="{StaticResource roundedButton}" x:Name="searchInRecommedPrev"  Click="searchInRecommedPrev_Click"></Button>
+                            <Button Width="40" Content="&gt;&gt;" Style="{StaticResource roundedButton}" x:Name="searchInRecommedNext"  Click="searchInRecommedNext_Click"></Button>
                         </StackPanel>
                     </Grid>
                 </TabItem>

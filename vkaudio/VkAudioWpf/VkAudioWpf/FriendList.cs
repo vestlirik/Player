@@ -10,6 +10,7 @@ using System.Xml;
 
 namespace VkAudioWpf
 {
+    public delegate void Authentification();
     class FriendList
     {
         protected List<User> users;
@@ -18,6 +19,7 @@ namespace VkAudioWpf
         private string userId;
         private string access_token;
         private Timer timer;
+        private Authentification auth;
 
 
         public delegate void MethodContainer();
@@ -25,13 +27,14 @@ namespace VkAudioWpf
         //Событие OnCount c типом делегата MethodContainer.
         public event MethodContainer OnUsersUpdated;
 
-        public FriendList(string _userId, string _access_token)
+        public FriendList(string _userId, string _access_token, Authentification _auth)
         {
             users = new List<User>();
             gettedUsers = new List<User>();
             selectedUser = null;
             userId = _userId;
             access_token = _access_token;
+            auth = _auth;
 
             DownloadUsers();
 
@@ -79,30 +82,38 @@ namespace VkAudioWpf
 
         public void UpdateUsers()
         {
-            Uri uri = new Uri("https://api.vk.com/method/friends.get.xml?user_id=" + userId + "&order=hints&fields=photo_50, online, last_seen, status, counters, can_write_private_message, can_see_audio" + "&access_token=" + access_token + "&v=5.21");
-
-            var x = new XmlDocument();
-            x.Load(uri.ToString());
-            var receivedUsers = x.GetElementsByTagName("response")[0];
-
-            int length = receivedUsers.ChildNodes[1].ChildNodes.Count;
-            for (int i = 0; i < length; i++)
+            again:try
             {
-                var user = new User(receivedUsers.ChildNodes[1].ChildNodes[i]);
-                var tmpUser = users.FirstOrDefault(z => z.id == user.id);
-                if (tmpUser != null)
-                    tmpUser.UpdateDataFrom(user);
-                else
-                    users.Add(tmpUser);
-            }
+                Uri uri = new Uri("https://api.vk.com/method/friends.get.xml?user_id=" + userId + "&order=hints&fields=photo_50, online, last_seen, status, counters, can_write_private_message, can_see_audio" + "&access_token=" + access_token + "&v=5.21");
 
-            users = users.OrderBy(d => gettedUsers.IndexOf(d)).ToList();
-            try
-            {
-                users = users.OrderByDescending(us => us.online == "1").ToList();
+                var x = new XmlDocument();
+                x.Load(uri.ToString());
+                var receivedUsers = x.GetElementsByTagName("response")[0];
+
+                int length = receivedUsers.ChildNodes[1].ChildNodes.Count;
+                for (int i = 0; i < length; i++)
+                {
+                    var user = new User(receivedUsers.ChildNodes[1].ChildNodes[i]);
+                    var tmpUser = users.FirstOrDefault(z => z.id == user.id);
+                    if (tmpUser != null)
+                        tmpUser.UpdateDataFrom(user);
+                    else
+                        users.Add(tmpUser);
+                }
+
+                users = users.OrderBy(d => gettedUsers.IndexOf(d)).ToList();
+                try
+                {
+                    users = users.OrderByDescending(us => us.online == "1").ToList();
+                }
+                catch { }
+                users = users.OrderByDescending(us => us.status_audio_id != "").ToList();
             }
-            catch { }
-            users = users.OrderByDescending(us => us.status_audio_id != "").ToList();
+            catch
+            {
+                auth();
+                goto again;
+            }
         }
 
 

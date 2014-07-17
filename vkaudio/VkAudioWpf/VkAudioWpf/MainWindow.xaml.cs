@@ -497,17 +497,23 @@ namespace VkAudioWpf
 
                 mi = new MenuItem();
                 mi.Header = "Рекомендовані треки " + elm.artist.Substring(0, elm.artist.Length > 20 ? 20 : elm.artist.Length);
-                mi.Click += new RoutedEventHandler(async(sender, e) =>
+                mi.Click += new RoutedEventHandler(async (sender, e) =>
                 {
                     reccomedTab.Focus();
+                    listRecommedTracksBox.SelectedIndex = -1;
+                    listRecommedTracksBox.SelectedIndex = 0;
+                    listRecommedTracksBox.SelectedIndex = -1;
                     await Task.Factory.StartNew(() => recommendations.LoadReccomendationsByAudio(elm));
                     if (recommendations.Playlist.Count() == 0)
                     {
                         MessageBox.Show("Немає рекомендації до цього треку.");
                         recommendations.LoadReccomendations();
                     }
-                    FillListBox(recommendations.Playlist, listRecommedTracksBox, true, false, false);
-                    recommedCountLabel.Content = recommendations.GetSearchedCount() + " треків";
+                    else
+                    {
+                        recommedCountLabel.Content = recommendations.GetSearchedCount() + " треків за рекомендацію \"" + recommendations.Query + "\"";
+                        FillListBox(recommendations.Playlist, listRecommedTracksBox, true, false, false);
+                    }
                 });
 
                 cntMenu.Items.Add(mi);
@@ -679,7 +685,7 @@ namespace VkAudioWpf
                     cherga.Add(playlist.SelTrack);
             PlayTrack();
         }
-        
+
 
 
         private void prevButton_Click(object sender, RoutedEventArgs e)
@@ -1547,23 +1553,22 @@ namespace VkAudioWpf
         private async void updateButton_Click(object sender, RoutedEventArgs e)
         {
 
-            var currTrack = ((PlayListVk)playlist).GetCurrentTrackVK();
+            var currTrack = ((PlayListVk)playlistAll).GetCurrentTrackVK();
             string selTrack = "";
             if (currTrack != null)
                 selTrack = currTrack.aid;
             listBox.Items.Clear();
             tracksCountLabel.Content = "0 треків";
-            playlist = new PlayListVk();
-            playlistAll = playlist;
-            await Task.Factory.StartNew(() => playlist.DownloadTracks(new string[] { sett.UserId, sett.VKToken }));
+            playlistAll = new PlayListVk();
+            await Task.Factory.StartNew(() => playlistAll.DownloadTracks(new string[] { sett.UserId, sett.VKToken }));
 
-            tracksCountLabel.Content = playlist.Count() + " треків";
+            tracksCountLabel.Content = playlistAll.Count() + " треків";
 
-            FillListBox((PlayListVk)playlist, listBox, false, true, true);
+            FillListBox((PlayListVk)playlistAll, listBox, false, true, true);
             if (currTrack != null)
             {
-                ((PlayListVk)playlist).SelectTrackByAid(selTrack);
-                listBox.SelectedIndex = ((PlayListVk)playlist).SelTrack;
+                ((PlayListVk)playlistAll).SelectTrackByAid(selTrack);
+                listBox.SelectedIndex = ((PlayListVk)playlistAll).SelTrack;
             }
 
         }
@@ -2140,7 +2145,7 @@ namespace VkAudioWpf
 
         private void loadFriendList()
         {
-            users = new FriendList(sett.UserId, sett.VKToken);
+            users = new FriendList(sett.UserId, sett.VKToken, GetAuth);
             FillUsers(listUserBox);
             users.OnUsersUpdated += users_OnUsersUpdated;
             //
@@ -2154,24 +2159,16 @@ namespace VkAudioWpf
 
         void users_OnUsersUpdated()
         {
-        again: try
+            string selUser = users.GetSelectedUserId();
+            if (listUserBox == null || listUserBox.Items.Count == 0)
+                FillUsers(listUserBox);
+            else
             {
-                string selUser = users.GetSelectedUserId();
-                if (listUserBox == null || listUserBox.Items.Count == 0)
-                    FillUsers(listUserBox);
-                else
-                {
-                    //updating
-                    FillUsers(listUserBox);
-                }
-                if (selUser.Trim().Length > 0)
-                    listUserBox.SelectedIndex = users.SelectUserById(selUser);
+                //updating
+                FillUsers(listUserBox);
             }
-            catch (Exception ex)
-            {
-                GetAuth();
-                goto again;
-            }
+            if (selUser.Trim().Length > 0)
+                listUserBox.SelectedIndex = users.SelectUserById(selUser);
         }
 
         int activeUser = -1;
@@ -2584,6 +2581,115 @@ namespace VkAudioWpf
                 listRecommedTracksBox.SelectedIndex = 0;
                 listRecommedTracksBox.SelectedIndex = -1;
             }
+        }
+
+        private void searchInRecommed_KeyUp(object sender, KeyEventArgs e)
+        {
+            var pls = recommendations.Playlist;
+            if ((e.Key < Key.A && e.Key > Key.Z) || (e.Key < Key.D0 && e.Key > Key.D9))
+            {
+                e.Handled = true;
+                return;
+            }
+            if (e.Key != Key.Enter)
+                if (e.Key != Key.LeftAlt && e.Key != Key.LeftCtrl)
+                {
+                    if (pls != null && pls.Count() > 0)
+                    {
+                        var searchText = searchInRecommed.Text.Trim();
+                        if (searchText == "")
+                        {
+                            listRecommedTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                        for (int i = 0; i < pls.Count(); i++)
+                        {
+                            if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                listRecommedTracksBox.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+        }
+
+        private void searchInRecommed_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                if (searchInRecommed.Text.Trim() != "" && listRecommedTracksBox.SelectedIndex != -1)
+                {
+                    DoubleRecommListBoxClick();
+                }
+        }
+
+        private void DoubleRecommListBoxClick()
+        {
+            playlist = recommendations.Playlist;
+            playlist.SelTrack = listRecommedTracksBox.SelectedIndex;
+            if (checkBoxShuffle.IsChecked == true)
+                if (cherga.Count > 0 && cherga[cherga.Count - 1] != playlist.SelTrack)
+                    cherga.Add(playlist.SelTrack);
+            PlayTrack();
+        }
+
+        private void searchInRecommedClear_Click(object sender, RoutedEventArgs e)
+        {
+            searchInRecommed.Clear();
+            listRecommedTracksBox.SelectedIndex = recommendations.Playlist.SelTrack;
+        }
+
+        private void searchInRecommedPrev_Click(object sender, RoutedEventArgs e)
+        {
+            var pls = recommendations.Playlist;
+            var searchText = searchInRecommed.Text.Trim();
+            if (pls != null && pls.Count() > 0)
+                if (searchText != "" && listRecommedTracksBox.SelectedIndex != -1)
+                {
+                    for (int i = listRecommedTracksBox.SelectedIndex - 1; i > 0; i--)
+                    {
+                        if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listRecommedTracksBox.SelectedIndex = i;
+                            break;
+                        }
+                        if (i == 0)
+                        {
+                            listRecommedTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                    }
+                }
+            searchInRecommed.Focus();
+        }
+
+        private void searchInRecommedNext_Click(object sender, RoutedEventArgs e)
+        {
+            var pls = recommendations.Playlist;
+            var searchText = searchInRecommed.Text.Trim();
+            if (pls != null && pls.Count() > 0)
+                if (searchText != "" && listRecommedTracksBox.SelectedIndex != -1)
+                {
+                    for (int i = listRecommedTracksBox.SelectedIndex + 1; i < listRecommedTracksBox.Items.Count; i++)
+                    {
+                        if (pls.GetTrackN(i).IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            listRecommedTracksBox.SelectedIndex = i;
+                            break;
+                        }
+                        if (i == listRecommedTracksBox.Items.Count)
+                        {
+                            listRecommedTracksBox.SelectedIndex = pls.SelTrack;
+                            return;
+                        }
+                    }
+                }
+            searchInRecommed.Focus();
+        }
+
+        private void listRecommedTracksBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            listRecommedTracksBox.ScrollIntoView(listRecommedTracksBox.SelectedItem);
         }
     }
 }
