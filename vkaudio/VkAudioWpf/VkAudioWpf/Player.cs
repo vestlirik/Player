@@ -238,6 +238,31 @@ namespace vkAudio
             }
         }
 
-    
+
+
+        internal double GetDowloadedPercentage()
+        {
+            float progress;
+            // file length 
+            long len = Bass.BASS_StreamGetFilePosition(stream, BASSStreamFilePosition.BASS_FILEPOS_END);
+            // download progress 
+            long down = Bass.BASS_StreamGetFilePosition(stream, BASSStreamFilePosition.BASS_FILEPOS_DOWNLOAD);
+            // get channel info
+            BASS_CHANNELINFO info = Bass.BASS_ChannelGetInfo(stream);
+            // streaming in blocks? 
+            if (BASSFlag.BASS_STREAM_BLOCK != BASSFlag.BASS_DEFAULT)
+            {
+                // percentage of buffer used
+                progress = (down) * 100f / len;
+                if (progress > 100)
+                    progress = 100; // restrict to 100 (can be higher)
+            }
+            else
+            {
+                // percentage of file downloaded
+                progress = down * 100f / len;
+            }
+            return progress;
+        }
     }
 }

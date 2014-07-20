@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace VkAudioWpf
 {
@@ -20,6 +21,13 @@ namespace VkAudioWpf
         public int Count()
         {
             return albums.Count;
+        }
+
+        public void Add(string name,string token)
+        {
+            Uri uri = new Uri("https://api.vk.com/method/audio.addAlbum.xml?title=" + name + "&access_token=" + token + "&v=5.9");
+
+            var x = XDocument.Load(uri.ToString());
         }
 
         public void DownloadAlbums(string[] data)
@@ -52,8 +60,11 @@ namespace VkAudioWpf
 
         public void SelectAlbum(int index, string userId, string token)
         {
-            selectedAlbum = albums[index];
-            selectedAlbum.LoadAlbum(new[] { userId, token, selectedAlbum.Id });
+            if (index >= 0 && albums.Count>0 && albums.Count>=index+1)
+            {
+                selectedAlbum = albums[index];
+                selectedAlbum.LoadAlbum(new[] { userId, token, selectedAlbum.Id });
+            }
         }
 
         public AlbumVK GetSelectedAlbum()
@@ -91,6 +102,41 @@ namespace VkAudioWpf
         internal string GetIdByName(string selected)
         {
             return albums.First(x => x.Title == selected).Id;
+        }
+
+        internal void DeleteCurrent(string token)
+        {
+            var selAlbum = this.selectedAlbum;
+
+            Uri uri = new Uri("https://api.vk.com/method/audio.deleteAlbum.xml?album_id=" + selAlbum.Id + "&access_token=" + token + "&v=5.9");
+
+            var x = XDocument.Load(uri.ToString());
+
+            if (x.Element("response").Value != "1")
+                throw new Exception("Не вдлося видалити альбом");
+
+            albums.Remove(selAlbum);
+            selectedAlbum = null;
+
+
+
+        }
+
+        internal void Edit(string newName,string token)
+        {
+            var selAlbum = this.selectedAlbum;
+
+            Uri uri = new Uri("https://api.vk.com/method/audio.editAlbum.xml?album_id=" + selAlbum.Id + "&title="+newName + "&access_token=" + token + "&v=5.9");
+
+            var x = XDocument.Load(uri.ToString());
+
+            if (x.Element("response").Value != "1")
+                throw new Exception("Не вдалося перейменувати альбом");
+        }
+
+        internal string[] GetAlbumsIds()
+        {
+            return albums.Select(x => x.Id).ToArray();
         }
     }
 }

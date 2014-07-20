@@ -125,7 +125,14 @@ namespace VkAudioWpf
                 Debug.WriteLine("not added photo_50 to " + first_name + " " + last_name);
             }
             this.online = xmlNode["online"].InnerText;
-            this.status = xmlNode["status"].InnerText;
+            try
+            {
+                this.status = xmlNode["status"].InnerText;
+            }
+            catch
+            {
+                this.status = "";
+            }
             try
             {
                 this.status_audio_id = xmlNode["status_audio"]["id"].InnerText;
@@ -143,9 +150,30 @@ namespace VkAudioWpf
                 this.status_audio_url = "";
                 Debug.WriteLine("not added status_audio to " + first_name + " " + last_name);
             }
-            this.last_seen_time = xmlNode["last_seen"]["time"].InnerText;
-            this.last_seen_platform = xmlNode["last_seen"]["platform"].InnerText;
-            this.can_see_audio = xmlNode["can_see_audio"].InnerText;
+            try
+            {
+                this.last_seen_time = xmlNode["last_seen"]["time"].InnerText;
+            }
+            catch
+            {
+                this.last_seen_time = "";
+            }
+            try
+            {
+                this.last_seen_platform = xmlNode["last_seen"]["platform"].InnerText;
+            }
+            catch
+            {
+                this.last_seen_platform = "";
+            }
+            try
+            {
+                this.can_see_audio = xmlNode["can_see_audio"].InnerText;
+            }
+            catch
+            {
+                this.can_see_audio = "0";
+            }
             this.can_write_private_message = xmlNode["can_write_private_message"].InnerText;
 
             #region download image

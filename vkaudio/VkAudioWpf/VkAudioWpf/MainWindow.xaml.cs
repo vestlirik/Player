@@ -385,16 +385,14 @@ namespace VkAudioWpf
 
                     addBtn.Click += (object send, RoutedEventArgs ee) =>
                     {
-                        addBtn.IsEnabled = false;
-                        var color = addBtn.Background;
-                        addBtn.Background = Brushes.Yellow;
+                        Button currBtn = ((Button)send);
+                        currBtn.IsEnabled = false;
                         if (!elm.Add(sett.VKToken))
                         {
                             MessageBox.Show("Виникла помилка з додаваням треку");
-                            addBtn.IsEnabled = true;
-                            addBtn.Background = color;
-
+                            currBtn.IsEnabled = true;
                         }
+                        ShowNotiff("Аудіозапис додано");
                     };
 
                     Grid.SetColumn(addBtn, colemn);
@@ -407,11 +405,19 @@ namespace VkAudioWpf
                 if (isMyAudioTab)
                 {
                     ComboBox cbx = new ComboBox();
-                    cbx.IsReadOnly = true;
+                    cbx.Foreground = Brushes.White;
+                    cbx.Cursor = Cursors.Hand;
+                    cbx.IsEditable = false;
+                    cbx.IsTextSearchEnabled = false;
+                    cbx.IsTextSearchCaseSensitive = false;
+                    cbx.StaysOpenOnEdit = false;
+                    //cbx.IsReadOnly = true;
                     var albms = albums.GetAlbums();
-                    cbx.Items.Add("");
+                    cbx.Items.Add("Без альбому");
+                    cbx.ToolTip = "Без пльбому";
                     foreach (var alb in albms)
                         cbx.Items.Add(alb);
+                    cbx.SelectedIndex = 0;
                     if (elm.album_id.Trim() != "")
                     {
                         cbx.SelectedIndex = albums.GetIndexById(elm.album_id) + 1;
@@ -420,13 +426,15 @@ namespace VkAudioWpf
                     cbx.SelectionChanged += (object sender, SelectionChangedEventArgs e) =>
                     {
                         string selected = cbx.SelectedItem.ToString();
-                        if (selected.Trim() != "")
+                        ((ComboBox)sender).ToolTip = selected;
+                        if (selected != "Без альбому")
                         {
                             elm.ChangeAlbum(id: albums.GetIdByName(selected), token: sett.VKToken);
                         }
                         else
                             elm.ChangeAlbum(id: "", token: sett.VKToken);
                     };
+
 
                     Grid.SetColumn(cbx, colemn);
                     colemn++;
@@ -597,24 +605,31 @@ namespace VkAudioWpf
 
 
                 stack = new StackPanel() { Orientation = Orientation.Horizontal };
+                if (elm.last_seen_time.Trim().Length > 0)
+                {
+                    lbl = new Label() { Height = 30, FontSize = 10, Margin = new Thickness(0, -15, 0, 0) };
 
-                lbl = new Label() { Height = 30, FontSize = 10, Margin = new Thickness(0, -15, 0, 0) };
-                lbl.Content = elm.online == "1" ? "online" : (elm.sex == "1" ? "була" : "був") + " " + Settings.UnixTimeStampToDateTime(double.Parse(elm.last_seen_time));
-                stack.Children.Add(lbl);
+                    lbl.Content = elm.online == "1" ? "online" : (elm.sex == "1" ? "була" : "був") + " " + Settings.UnixTimeStampToDateTime(double.Parse(elm.last_seen_time));
+                    stack.Children.Add(lbl);
+                }
 
-                Image img3 = new Image();
-                img3.Height = 15;
-                img3.Width = 15;
-                bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri("/images/devices/" + elm.last_seen_platform_string + ".png", UriKind.Relative);
-                bitmap.EndInit();
-                img3.Source = bitmap;
-                img3.ToolTip = elm.last_seen_platform_string[0].ToString().ToUpper() + elm.last_seen_platform_string.Substring(1);
+                if (elm.last_seen_platform.Trim().Length > 0)
+                {
 
-                img3.Margin = new Thickness(0, -15, 0, 0);
+                    Image img3 = new Image();
+                    img3.Height = 15;
+                    img3.Width = 15;
+                    bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri("/images/devices/" + elm.last_seen_platform_string + ".png", UriKind.Relative);
+                    bitmap.EndInit();
+                    img3.Source = bitmap;
+                    img3.ToolTip = elm.last_seen_platform_string[0].ToString().ToUpper() + elm.last_seen_platform_string.Substring(1);
 
-                stack.Children.Add(img3);
+                    img3.Margin = new Thickness(0, -15, 0, 0);
+
+                    stack.Children.Add(img3);
+                }
 
                 stackPnl.Children.Add(stack);
 
@@ -1025,6 +1040,9 @@ namespace VkAudioWpf
         {
             if (progressBar.Value >= progressBar.Maximum - 1)
             {
+
+
+
                 if (checkBoxRepeat.IsChecked == true)
                     player.CurruntPosition = 0;
                 else
@@ -1037,6 +1055,7 @@ namespace VkAudioWpf
             {
                 if (progressBar.Value <= progressBar.Maximum)
                 {
+                    ChangeProggressBackGround();
                     progressBar.Value = (int)player.CurruntPosition;
                     startTime.Content = player.CurruntPositionString;
                     tbManager.SetProgressValue((int)progressBar.Value, (int)progressBar.Maximum, Process.GetCurrentProcess().MainWindowHandle);
@@ -1065,9 +1084,34 @@ namespace VkAudioWpf
 
         }
 
-        private void Mute()
+        private void ChangeProggressBackGround()
         {
-            player.Mute();
+            double percentage = player.GetDowloadedPercentage() / 100f;
+            LinearGradientBrush gradient = new LinearGradientBrush();
+            gradient.StartPoint = new Point(0, 0);
+            gradient.EndPoint = new Point(1, 1);
+
+            GradientStop stop = new GradientStop();
+            stop.Color = Colors.GreenYellow;
+            stop.Offset = percentage - 0.01;
+            gradient.GradientStops.Add(stop);
+
+            stop = new GradientStop();
+            stop.Color = Colors.Yellow;
+            stop.Offset = percentage;
+            gradient.GradientStops.Add(stop);
+
+            stop = new GradientStop();
+            stop.Color = Colors.DarkSlateGray;
+            stop.Offset = percentage + 0.01;
+            gradient.GradientStops.Add(stop);
+
+            stop = new GradientStop();
+            stop.Color = Colors.DarkSlateGray;
+            stop.Offset = 1;
+            gradient.GradientStops.Add(stop);
+
+            progressBar.Background = gradient;
         }
 
         private void progressBar_MouseDown(object sender, MouseButtonEventArgs e)
@@ -1883,12 +1927,12 @@ namespace VkAudioWpf
 
         private void albumsCombobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (albums != null)
+            if (albums != null && albumsCombobox.SelectedIndex>=0)
             {
-                albums.SelectAlbum(albumsCombobox.SelectedIndex, sett.UserId, sett.VKToken);
-                tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
-                FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true, false);
-                Button_Click_3(this, new RoutedEventArgs());
+                    albums.SelectAlbum(albumsCombobox.SelectedIndex, sett.UserId, sett.VKToken);
+                    tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
+                    FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true, false);
+                    Button_Click_3(this, new RoutedEventArgs());
             }
         }
 
@@ -1954,9 +1998,10 @@ namespace VkAudioWpf
 
         private void updateAlbumsButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedTracks = albums.GetSelectedTracksForAlbum();
             var curAlbum = albums.GetSelectedAlbum();
-            bool isAlbumPlaying = albums.GetSelectedAlbum().playlist == playlist;
+            KeyValuePair<string,string>[] selectedTracks=null;
+            selectedTracks = albums.GetSelectedTracksForAlbum();
+            bool isAlbumPlaying = curAlbum!=null? albums.GetSelectedAlbum().playlist == playlist:false;
             listAlbumBox.Items.Clear();
             tracksCountAlbumLabel.Content = "0 треків";
 
@@ -1964,13 +2009,34 @@ namespace VkAudioWpf
 
             albums.DownloadAlbums(new string[] { sett.UserId, sett.VKToken });
 
-            var index = Array.IndexOf(albums.GetAlbums(), curAlbum.Title, 0);
-            albums.SelectAlbum(index, sett.UserId, sett.VKToken);
-
-            tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
+            FillAlbums(albums);
+            
+            if (curAlbum != null)
+            {
+                var index = Array.IndexOf(albums.GetAlbumsIds(), curAlbum.Id, 0);
+                albumsCombobox.SelectedIndex = index;
+                albumsCombobox_SelectionChanged(null, null);
+                curAlbum = albums.GetSelectedAlbum();
+                tracksCountAlbumLabel.Content = curAlbum.playlist.Count() + " треків";
+            }
+            else
+                if(albums.Count()>0)
+                {
+                    albumsCombobox.SelectedIndex = 0;
+                    albumsCombobox_SelectionChanged(null, null);
+                    curAlbum = albums.GetSelectedAlbum();
+                    tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
+                }
+            if(selectedTracks!=null)
             albums.SetSelectedTracksForAlbum(selectedTracks);
-            FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true, false);
 
+
+            if (curAlbum != null)
+                FillListBox(albums.GetSelectedAlbum().playlist, listAlbumBox, false, true, false);
+            else
+                listAlbumBox.Items.Clear();
+
+            if(curAlbum!=null)
             listAlbumBox.SelectedIndex = albums.GetSelectedAlbum().playlist.SelTrack;
 
             if (isAlbumPlaying)
@@ -2569,7 +2635,10 @@ namespace VkAudioWpf
         private void RecommendCurrentTrackButton_Click(object sender, RoutedEventArgs e)
         {
             if (recommendations.Playlist.SelTrack != -1)
+            {
+                listRecommedTracksBox.SelectedIndex = -1;
                 listRecommedTracksBox.SelectedIndex = recommendations.Playlist.SelTrack;
+            }
         }
 
         private void RecommendUpdateButton_Click(object sender, RoutedEventArgs e)
@@ -2690,6 +2759,68 @@ namespace VkAudioWpf
         private void listRecommedTracksBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             listRecommedTracksBox.ScrollIntoView(listRecommedTracksBox.SelectedItem);
+        }
+
+        private void ShowNotiff(string text)
+        {
+            eventLabel.Content = text;
+            eventLabel.Opacity = 1;
+            Formms.Timer tim = new Formms.Timer();
+            tim.Interval = 5000;
+            tim.Tick += (s, e) =>
+                {
+                    new Thread(() =>
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                    {
+
+
+                        eventLabel.Opacity -= 0.1;
+
+                        return null;
+                    }), null);
+                            Thread.Sleep(100);
+                        }
+                        }).Start();
+                    tim.Stop();
+                };
+            tim.Start();
+        }
+
+        private void AddAlbumButton_Click(object sender, RoutedEventArgs e)
+        {
+            editingMode = false;
+            popupAlbum.IsOpen = true;
+            albumNameTextBox.Text = "";
+        }
+
+        private void DeleteAlbumButton_Click(object sender, RoutedEventArgs e)
+        {
+            albums.DeleteCurrent(sett.VKToken);
+            updateAlbumsButton_Click(sender, e);
+        }
+
+        private void EditAlbumButton_Click(object sender, RoutedEventArgs e)
+        {
+            editingMode = true;
+            popupAlbum.IsOpen = true;
+            albumNameTextBox.Text = albums.GetSelectedAlbum().Title;
+        }
+
+        bool editingMode = false;
+        private void SaveAlbumName_Click(object sender, RoutedEventArgs e)
+        {
+            string newName = albumNameTextBox.Text.Trim();
+            if(newName.Length>0)
+            {
+                if (editingMode)
+                    albums.Edit(newName,sett.VKToken);
+                else
+                    albums.Add(newName,sett.VKToken);
+                updateAlbumsButton_Click(sender, e);
+            }
         }
     }
 }

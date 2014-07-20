@@ -42,7 +42,7 @@ namespace VkAudioWpf
         //return current track
         public AudioVK GetCurrentTrackVK()
         {
-            if (SelTrack >= 0)
+            if (SelTrack >= 0 && tracks.Count>=SelTrack && tracks.Count>0)
             return tracks[SelTrack];
             else
                 return null;
