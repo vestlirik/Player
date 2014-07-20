@@ -2819,6 +2819,7 @@ namespace VkAudioWpf
                     albums.Edit(newName,sett.VKToken);
                 else
                     albums.Add(newName,sett.VKToken);
+                popupAlbum.IsOpen = false;
                 updateAlbumsButton_Click(sender, e);
             }
         }
