@@ -82,6 +82,7 @@ namespace VkAudioWpf
 
         public void UpdateUsers()
         {
+            bool b = false;
             again:try
             {
                 Uri uri = new Uri("https://api.vk.com/method/friends.get.xml?user_id=" + userId + "&order=hints&fields=photo_50, online, last_seen, status, counters, can_write_private_message, can_see_audio" + "&access_token=" + access_token + "&v=5.21");
@@ -111,8 +112,14 @@ namespace VkAudioWpf
             }
             catch
             {
-                auth();
-                goto again;
+                if (!b)
+                {
+                    auth();
+                    b = true;
+                    goto again;
+                }
+                else
+                    System.Windows.Forms.Application.Restart();
             }
         }
 

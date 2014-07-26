@@ -38,12 +38,12 @@ namespace VkAudioWpf
         {
             return tracks.Count;
         }
-        
+
         //return current track
         public AudioVK GetCurrentTrackVK()
         {
-            if (SelTrack >= 0 && tracks.Count>=SelTrack && tracks.Count>0)
-            return tracks[SelTrack];
+            if (SelTrack >= 0 && tracks.Count >= SelTrack && tracks.Count > 0)
+                return tracks[SelTrack];
             else
                 return null;
         }
@@ -70,7 +70,7 @@ namespace VkAudioWpf
                 tracks.Add(audio);
             }
         }
-        
+
         internal void DownloadAlbumTracks(string userId, string token, string albumId)
         {
             Uri uri = new Uri("https://api.vk.com/method/audio.get.xml?owner_id=" + userId + "&album_id=" + albumId + "&access_token=" + token + "&v=5.9");
@@ -108,7 +108,7 @@ namespace VkAudioWpf
             }
         }
 
-        
+
 
         public List<AudioVK> GetTrackListVK()
         {
@@ -122,7 +122,7 @@ namespace VkAudioWpf
 
         public void RemoveFile(int index, string owner, string token)
         {
-            
+
             Uri uri = new Uri("https://api.vk.com/method/audio.delete.xml?audio_id=" + tracks[index].aid + "&owner_id=" + owner + "&access_token=" + token);
             var x = new XmlDocument();
             x.Load(uri.ToString());
@@ -135,12 +135,12 @@ namespace VkAudioWpf
 
 
         //for vk
-        public void SetStatus(string audioId,string token)
+        public void SetStatus(string audioId, string token)
         {
             Uri uri = new Uri("https://api.vk.com/method/audio.setBroadcast.xml?audio=" + audioId + "&access_token=" + token);
             var x = new XmlDocument();
             x.Load(uri.ToString());
-            
+
         }
 
         internal string GetTrackN(int i)
@@ -181,7 +181,7 @@ namespace VkAudioWpf
 
         internal void SelectTrackByAid(string selTrack)
         {
-            for(int i=0;i<tracks.Count;i++)
+            for (int i = 0; i < tracks.Count; i++)
             {
                 if (String.Compare(tracks[i].aid, selTrack) == 0)
                 {
@@ -219,7 +219,7 @@ namespace VkAudioWpf
                 tracks.Add(audio);
             }
         }
-        internal void DownloadReccomendations(string vkToken,AudioVK selAudio)
+        internal void DownloadReccomendations(string vkToken, AudioVK selAudio)
         {
             Uri uri = new Uri("https://api.vk.com/method/audio.getRecommendations.xml?target_audio=" + selAudio.owner_id + "_" + selAudio.aid + "&count=300&shuffle=1" + "&access_token=" + vkToken + "&v=5.9");
 
@@ -236,6 +236,37 @@ namespace VkAudioWpf
                 var audio = new AudioVK(audioElements.ChildNodes[i]);
                 tracks.Add(audio);
             }
+        }
+
+        internal void Edit(AudioVK editedTrack, string trackName, string artistName, string vkToken)
+        {
+            trackName = fixName(trackName);
+            artistName = fixName(artistName);
+
+            Uri uri = new Uri("https://api.vk.com/method/audio.edit.xml?owner_id=" + editedTrack.owner_id + "&audio_id=" + editedTrack.aid + "&artist=" + artistName + "&title=" + trackName + "&access_token=" + vkToken + "&v=5.9");
+
+            var xml = new XmlDocument();
+            xml.Load(uri.ToString());
+        }
+
+        internal AudioVK GetTrackByIndex(int editedTrack)
+        {
+            return this.tracks[editedTrack];
+        }
+
+        private static String fixName(String pathname)
+        {
+            Char[] forbiddenSymbols = new Char[] { '<', '>', ':', '\'', '/', '\\', '|', '?', '*' };
+            String result = "";
+            foreach (Char el in pathname)
+            {
+                if (!forbiddenSymbols.Contains(el))
+                    if (el == '&')
+                        result += "%26";
+                    else
+                        result += el;
+            }
+            return result;
         }
     }
 }

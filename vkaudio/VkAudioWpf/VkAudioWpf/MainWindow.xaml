@@ -316,6 +316,7 @@
     </Window.TaskbarItemInfo>
     <Border BorderThickness="1" BorderBrush="Black">
         <Canvas>
+            
             <StackPanel Width="800">
                 <Border BorderThickness="0,0,0,1" BorderBrush="Black">
                     <Grid Height="30px" Background="Silver" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
@@ -347,7 +348,7 @@
                         </Grid.ColumnDefinitions>
                         <Image Grid.Column="0" OpacityMask="#FF79ACAC" x:Name="pictureBox"></Image>
                         <StackPanel Grid.Column="1">
-                            <Label Padding="5px" x:Name="titleLabel">
+                            <Label Padding="5px" Height="30" x:Name="titleLabel">
                                 Author - Title
                             </Label>
 
@@ -435,6 +436,15 @@
                                 </ComboBox>
                                 <ToggleButton  Style="{StaticResource toggle}" Name="reverseButton" Click="ToggleButton_Click_1">Z->A</ToggleButton>
                                 <Button  Style="{StaticResource roundedButton}" Click="Button_Click_2">Поточний трек</Button>
+                                <Popup x:Name="popupTrack" StaysOpen="False" Margin="200,50,0,0">
+                                    <StackPanel Width="340" Height="150">
+                                        <Label HorizontalAlignment="Center" Foreground="White">Виконавець треку</Label>
+                                        <TextBox Width="300" Height="30" VerticalAlignment="Center" x:Name="artistNameTextBox"></TextBox>
+                                        <Label HorizontalAlignment="Center" Foreground="White">Назва треку</Label>
+                                        <TextBox Width="300" Height="30" VerticalAlignment="Center" x:Name="trackNameTextBox"></TextBox>
+                                        <Button Height="30" Width="100" Style="{StaticResource roundedButton}" VerticalAlignment="Bottom" Click="SaveTrackName_Click">Зберегти</Button>
+                                    </StackPanel>
+                                </Popup>
                             </StackPanel>
                             <ListBox Grid.Row="1" Margin="5,5,3,5" Background="Silver" Name="listBox" MouseMove="listBox_MouseMove" KeyUp="listBox_KeyUp" KeyDown="listBox_KeyDown" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listBox_SelectionChanged" Width="780" Grid.ColumnSpan="2"/>
                             <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="2">
@@ -478,6 +488,7 @@
                                 <Button  Style="{StaticResource roundedButton}" Click="Button_Click_3">Поточний трек</Button>
                             </StackPanel>
                             <ListBox Grid.Row="1" Margin="5" Background="Silver" Name="listAlbumBox" MouseMove="listAlbumBox_MouseMove"  KeyUp="listAlbumBox_KeyUp"  KeyDown="listAlbumBox_KeyDown"  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionChanged="listAlbumBox_SelectionChanged" Width="780"/>
+                            
                             <StackPanel Orientation="Horizontal" Grid.Row="2">
                                 <Label>Пошук в списку</Label>
                                 <TextBox Width="250" Background="DarkGray" Foreground="White" KeyUp="searchInAlbumBox_KeyUp"  Name="searchInAlbumBox" KeyDown="searchInAlbumBox_KeyDown"></TextBox>
@@ -587,6 +598,7 @@
             <Grid Canvas.Top="575" Canvas.Left="470"  Width="300">
                 <Label x:Name="eventLabel" HorizontalAlignment="Right" Foreground="White"></Label>
             </Grid>
+            
         </Canvas>
     </Border>
 </Window>

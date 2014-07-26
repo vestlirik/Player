@@ -162,6 +162,7 @@
     <Content Include="bass.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Resource Include="images\Edit-icon.png" />
     <Resource Include="images\devices\iphone.png" />
     <Resource Include="images\devices\windows.png" />
     <Resource Include="images\devices\ipad.png" />

@@ -337,7 +337,7 @@ namespace VkAudioWpf
                     sumSize += 30;
                 sumSize += 70;
                 if (isAllowDeletingCurrTrack)
-                    sumSize += 40;
+                    sumSize += 80;
                 if (isMyAudioTab)
                     sumSize += 80;
 
@@ -345,6 +345,10 @@ namespace VkAudioWpf
                 Grid grid = new Grid();
                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(listbx.Width - sumSize - 30) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
+
+
+                if (isAllowDeletingCurrTrack)
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
 
                 if (isAllowAddCurrTrack)
                     grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(30) });
@@ -375,6 +379,38 @@ namespace VkAudioWpf
                 grid.Children.Add(lbl);
 
                 Button btn;
+
+
+                if (isAllowDeletingCurrTrack)
+                {
+                    Button editBtn = new Button();
+                    editBtn.Style = this.FindResource("roundedButton") as Style;
+
+                    Image img3 = new Image();
+                    img3.Height = 20;
+                    img3.Width = 40;
+                    bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri("/images/Edit-icon.png", UriKind.Relative);
+                    bitmap.EndInit();
+                    img3.Source = bitmap;
+
+                    editBtn.Content = img3;
+
+                    editBtn.Click += (object send, RoutedEventArgs ee) =>
+                    {
+                        editedTrack = elm;
+                        trackNameTextBox.Text = elm.title;
+                        artistNameTextBox.Text = elm.artist;
+                        //popupTrack.Visibility = System.Windows.Visibility.Visible;
+                        popupTrack.IsOpen = true;
+
+                    };
+
+                    Grid.SetColumn(editBtn, colemn);
+                    colemn++;
+                    grid.Children.Add(editBtn);
+                }
 
                 #region add button
                 if (isAllowAddCurrTrack)
@@ -1092,22 +1128,22 @@ namespace VkAudioWpf
             gradient.EndPoint = new Point(1, 1);
 
             GradientStop stop = new GradientStop();
-            stop.Color = Colors.GreenYellow;
+            stop.Color = Colors.DarkSlateGray;
             stop.Offset = percentage - 0.01;
             gradient.GradientStops.Add(stop);
 
             stop = new GradientStop();
-            stop.Color = Colors.Yellow;
+            stop.Color = Colors.DarkSlateGray;
             stop.Offset = percentage;
             gradient.GradientStops.Add(stop);
 
             stop = new GradientStop();
-            stop.Color = Colors.DarkSlateGray;
+            stop.Color = Colors.Transparent;
             stop.Offset = percentage + 0.01;
             gradient.GradientStops.Add(stop);
 
             stop = new GradientStop();
-            stop.Color = Colors.DarkSlateGray;
+            stop.Color = Colors.Transparent;
             stop.Offset = 1;
             gradient.GradientStops.Add(stop);
 
@@ -1596,7 +1632,7 @@ namespace VkAudioWpf
 
         private async void updateButton_Click(object sender, RoutedEventArgs e)
         {
-
+            bool isPlaying = playlistAll == playlist;
             var currTrack = ((PlayListVk)playlistAll).GetCurrentTrackVK();
             string selTrack = "";
             if (currTrack != null)
@@ -1609,6 +1645,10 @@ namespace VkAudioWpf
             tracksCountLabel.Content = playlistAll.Count() + " треків";
 
             FillListBox((PlayListVk)playlistAll, listBox, false, true, true);
+
+            if (isPlaying)
+                playlist = playlistAll;
+
             if (currTrack != null)
             {
                 ((PlayListVk)playlistAll).SelectTrackByAid(selTrack);
@@ -2271,6 +2311,7 @@ namespace VkAudioWpf
 
         private void updateuserTracksButton_Click(object sender, RoutedEventArgs e)
         {
+            if(users.IsSelected)
             if (users.CanGetTracks())
             {
                 this.users.UpdateUserTracks();
@@ -2813,14 +2854,29 @@ namespace VkAudioWpf
         private void SaveAlbumName_Click(object sender, RoutedEventArgs e)
         {
             string newName = albumNameTextBox.Text.Trim();
-            if(newName.Length>0)
+            if (newName.Length > 0)
             {
                 if (editingMode)
-                    albums.Edit(newName,sett.VKToken);
+                    albums.Edit(newName, sett.VKToken);
                 else
-                    albums.Add(newName,sett.VKToken);
+                    albums.Add(newName, sett.VKToken);
                 popupAlbum.IsOpen = false;
                 updateAlbumsButton_Click(sender, e);
+            }
+        }
+        AudioVK editedTrack = null;
+        private void SaveTrackName_Click(object sender, RoutedEventArgs e)
+        {
+            if (editedTrack != null)
+            {
+                string trackName = trackNameTextBox.Text.Trim();
+                string artistName = artistNameTextBox.Text.Trim();
+                if (trackName.Length > 0 && artistName.Length > 0)
+                {
+                    playlist.Edit(editedTrack, trackName, artistName, sett.VKToken);
+                    popupTrack.IsOpen = false;
+                    updateButton_Click(sender, e);
+                }
             }
         }
     }
