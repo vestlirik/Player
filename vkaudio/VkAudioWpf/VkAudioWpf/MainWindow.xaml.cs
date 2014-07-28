@@ -190,6 +190,7 @@ namespace VkAudioWpf
         {
             if (auth != null)
                 auth.Close();
+            player.Exit();
             SaveSettings();
             Close();
 
@@ -486,7 +487,7 @@ namespace VkAudioWpf
                 btn.Click += (object send, RoutedEventArgs ee) =>
                 {
                     ((Button)send).IsEnabled = false;
-                    DownloadFile(elm.GetLocation, elm.Name, (Button)send);
+                    DownloadFile(elm, (Button)send);
                 };
 
                 Grid.SetColumn(btn, colemn);
@@ -848,7 +849,7 @@ namespace VkAudioWpf
             Audio currSong = null;
             var plstType = playlist.GetType();
             currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
-            player.AttachUrlSong(currSong.GetLocation);
+            player.AttachTrack((AudioVK)currSong);
             //set status
             var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
             if (ShowBroadcast)
@@ -1519,18 +1520,29 @@ namespace VkAudioWpf
             return ss;
         }
 
-        private void DownloadFile(string url, string name, Button button)
+        private void DownloadFile(AudioVK track, Button button)
         {
+            string filepath = Directory.GetCurrentDirectory() + "\\" + player.FOLDER + "\\" + track.aid + ".mp3";
+            string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + "\\Downloads\\Zeus\\";
+            string name = track.artist + " - " + track.title;
+            if (File.Exists(filepath))
+                if (player.GetDuration(filepath) == track.duration)
+                {
+                    File.Copy(filepath,path + name + ".mp3", true);
+                    MessageBox.Show(name + " завантажена до папки Downloads/Zeus");
+                    button.IsEnabled = true;
+                    return;
+                }
+
             new Thread(() =>
                 {
-                    string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + "\\Downloads\\Zeus\\";
                     if (!Directory.Exists(path))
                     {
                         Directory.CreateDirectory(path);
                     }
                     WebClient wb = new WebClient();
                     name.Replace("\"", "");
-                    wb.DownloadFile(new Uri(url), path + name + ".mp3");
+                    wb.DownloadFile(new Uri(track.GetLocation), path + name + ".mp3");
                     wb.Dispose();
                     this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
                     {
