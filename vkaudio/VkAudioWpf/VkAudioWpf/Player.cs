@@ -24,7 +24,7 @@ namespace vkAudio
         PLAYER_STATUS_ENDED,
     };
 
-    public class Player
+    public sealed class Player:IDisposable
     {
         //Current status of the player
         PLAYER_STATUS curStatus;
@@ -33,7 +33,7 @@ namespace vkAudio
         int stream;
 
         //Delegate to let the clients know about Event change
-        public delegate void OnStatusUpdate(PLAYER_STATUS status);
+        public delegate void OnStatusUpdate(PLAYER_STATUS status,EventArgs e);
 
         //Event for clients to subscribe to, if they want to get notfied.
         public event OnStatusUpdate StatusChanged;
@@ -66,13 +66,13 @@ namespace vkAudio
             //set default status
             curStatus = PLAYER_STATUS.PLAYER_STATUS_NOT_READY;
 
-            GetCurrFolder();
         }
 
        
         public void AttachTrack(AudioVK track)
         {
             Bass.BASS_Free();
+            Settings.CheckCurrFolder(FOLDER_PATH);
             if (_fs != null)
             {
                 _fs.Close();
@@ -169,11 +169,6 @@ namespace vkAudio
             }
         }
 
-        ~Player()
-        {
-            Bass.BASS_Free();
-        }
-
         //UI can call this function to keep itself up to date
         public PLAYER_STATUS GetPlayerstatus()
         {
@@ -232,7 +227,7 @@ namespace vkAudio
         private void UpdateStatus(PLAYER_STATUS status)
         {
             curStatus = status;
-            StatusChanged(curStatus);
+            StatusChanged(curStatus,null);
         }
 
         //System volume
@@ -313,12 +308,7 @@ namespace vkAudio
             else
                 return 100f;
         }
-
-        internal void Exit()
-        {
-            Bass.BASS_Free();
-        }
-
+        
 
         private void MyDownload(IntPtr buffer, int length, IntPtr user)
         {
@@ -345,16 +335,7 @@ namespace vkAudio
             }
         }
 
-        public void GetCurrFolder()
-        {
-            string path = Directory.GetCurrentDirectory();
-            path += "\\" + FOLDER_PATH;
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-        }
-
+        
         public string GetDuration(string path)
         {
             string file = path;
@@ -375,6 +356,22 @@ namespace vkAudio
             // One million nanoseconds in 1 millisecond, 
             // but we are passing in 100ns units...
             return nanoseconds * 0.0001;
+        }
+
+
+        public void Dispose(bool b)
+        {
+            if (b)
+                GC.SuppressFinalize(currTrack);
+
+            Bass.BASS_Free();
+            stream = 0;
+        }
+
+        public void Dispose()
+        {
+            Bass.BASS_Free();
+            stream = 0;
         }
     }
 }

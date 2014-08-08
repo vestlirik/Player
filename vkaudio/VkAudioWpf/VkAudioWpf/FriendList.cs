@@ -11,7 +11,7 @@ using System.Xml;
 namespace VkAudioWpf
 {
     public delegate void Authentification();
-    class FriendList
+    class FriendList:IDisposable
     {
         protected List<User> users;
         protected List<User> gettedUsers;
@@ -266,6 +266,11 @@ namespace VkAudioWpf
                 return selected.id;
             else
                 throw new Exception("not find user:" + p);
+        }
+
+        public void Dispose()
+        {
+            this.timer.Dispose();
         }
     }
 }

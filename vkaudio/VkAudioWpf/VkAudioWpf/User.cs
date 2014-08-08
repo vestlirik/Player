@@ -192,7 +192,7 @@ namespace VkAudioWpf
         {
             playlist = new PlayListVk();
             playlist.DownloadTracks(
-                new []{
+                new[]{
                     this.id,
                     token
                 }
@@ -260,14 +260,21 @@ namespace VkAudioWpf
             image.Width = 50;
             BitmapImage bitmap = new BitmapImage();
             bitmap.BeginInit();
-            bitmap.UriSource = new Uri(this.photo_50, UriKind.Absolute);
+            if(Settings.CheckImage(photo_50.Split('/').Last()).Trim()=="")
+                Settings.DownloadRemoteImageFile(this.photo_50,photo_50.Split('/').Last());
+            string path = Settings.CheckImage(photo_50.Split('/').Last()).Trim();
+            if(path!="")
+                bitmap.UriSource = new Uri(path,UriKind.Absolute);
+            else
+                bitmap.UriSource=new Uri(this.photo_50,UriKind.Absolute);
             bitmap.EndInit();
             image.Source = bitmap;
         }
 
         internal bool IsFilledTracks
         {
-            get; set;
+            get;
+            set;
         }
 
         internal void FillTracks()
