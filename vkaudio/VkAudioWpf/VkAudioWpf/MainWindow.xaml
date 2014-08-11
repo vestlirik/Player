@@ -498,7 +498,7 @@
                             </StackPanel>
                         </Grid>
                     </TabItem>
-                    <TabItem Header="Музика друзів">
+                    <TabItem Header="Музика друзів" GotFocus="TabFriendsGotFocus" LostFocus="TabFriendsLostFocus">
                         <Grid Height="370">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="250px"></ColumnDefinition>

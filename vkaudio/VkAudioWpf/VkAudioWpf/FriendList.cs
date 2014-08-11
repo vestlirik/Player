@@ -42,7 +42,6 @@ namespace VkAudioWpf
             timer = new Timer();
             timer.Interval = 10000;
             timer.Tick += timer_Tick;
-            timer.Start();
         }
 
         void timer_Tick(object sender, EventArgs e)
@@ -271,6 +270,16 @@ namespace VkAudioWpf
         public void Dispose()
         {
             this.timer.Dispose();
+        }
+
+        public void StartTimer()
+        {
+            timer.Start();
+        }
+
+        public void StopTimer()
+        {
+            timer.Stop();
         }
     }
 }

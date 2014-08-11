@@ -918,16 +918,8 @@ namespace VkAudioWpf
             titleLabel.Content = currSong.Name;
 
             progressBar.Minimum = 0;
-            if (plstType.Name == "PlayListLocal")
-            {
-                progressBar.Maximum = player.Duration(currSong.GetLocation);
-                endTime.Content = player.DurationString(currSong.GetLocation);
-            }
-            else if (plstType.Name == "PlayListVk")
-            {
                 progressBar.Maximum = int.Parse(((AudioVK)currSong).duration);
                 endTime.Content = ((AudioVK)currSong).DurationString;
-            }
 
             timer.Enabled = true;
 
@@ -1167,7 +1159,7 @@ namespace VkAudioWpf
 
                         }
                         catch { }
-                        if (listedTime >= scrobbleTime && !IsScrobled)
+                        if (sett.LastSessionKey!="" && listedTime >= scrobbleTime && !IsScrobled)
                         {
                             var currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
                             try
@@ -1293,7 +1285,7 @@ namespace VkAudioWpf
             ChangePlayPauseIconInButton(true);
             tbManager.SetProgressState(TaskbarProgressBarState.Normal);
             timer.Start();
-            if (!IsScrobled)
+            if (!IsScrobled && sett.LastSessionKey!="")
                 timerScrobble.Start();
 
             buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Pause;
@@ -3012,6 +3004,16 @@ namespace VkAudioWpf
             player.Dispose();
             timer.Dispose();
             timerScrobble.Dispose();
+        }
+
+        private void TabFriendsGotFocus(object sender, RoutedEventArgs e)
+        {
+            users.StartTimer();
+        }
+
+        private void TabFriendsLostFocus(object sender, RoutedEventArgs e)
+        {
+            users.StopTimer();
         }
     }
 }
