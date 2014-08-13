@@ -49,7 +49,7 @@ namespace VkAudioWpf
         //очередь для случайного воспроизведения
         List<int> cherga = new List<int>();
         //очередь для воспроизведения
-        Queue<int> queue = new Queue<int>();
+        Queue<string> queue = new Queue<string>();
 
         //Кнопки для панели задач
         private ThumbnailToolBarButton buttonPlayPause;
@@ -801,9 +801,9 @@ namespace VkAudioWpf
         {
             if (playlist != null && playlist.Count() > 0)
             {
-                if (CheckQueue())
+                if (playlist==playlistAll && CheckQueue())
                 {
-                    playlist.SelTrack = GetNextFromQueue();
+                    playlist.SelectTrackByAid(GetNextFromQueue());
                 }
                 else
                 if (checkBoxShuffle.IsChecked == true)
@@ -1501,7 +1501,7 @@ namespace VkAudioWpf
                 DoubleListBoxClick();
             }
             if (e.Key == Key.Q)
-                AddToQueue(listBox.SelectedIndex);
+                AddToQueue(playlist.GetTrackByIndex(listBox.SelectedIndex).aid);
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -3021,15 +3021,15 @@ namespace VkAudioWpf
             users.StopTimer();
         }
 
-        private void AddToQueue(int nextIndex)
+        private void AddToQueue(string nextTrack)
         {
-            queue.Enqueue(nextIndex);
+            queue.Enqueue(nextTrack);
             ShowNotiff("Додано в чергу");
         }
 
-        private int GetNextFromQueue()
+        private string GetNextFromQueue()
         {
-            int nextEl = -1;
+            string nextEl = "";
             if (queue.Count > 0)
             {
                 nextEl = queue.Dequeue();

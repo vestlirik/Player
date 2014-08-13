@@ -178,11 +178,11 @@ namespace VkAudioWpf
             reverse = false;
         }
 
-        internal void SelectTrackByAid(string selTrack)
+        internal void SelectTrackByAid(string selTrackAid)
         {
             for (int i = 0; i < tracks.Count; i++)
             {
-                if (String.Compare(tracks[i].aid, selTrack) == 0)
+                if (String.Compare(tracks[i].aid, selTrackAid) == 0)
                 {
                     this.SelTrack = i;
                     break;
