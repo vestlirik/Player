@@ -49,7 +49,7 @@ namespace VkAudioWpf
         //очередь для случайного воспроизведения
         List<int> cherga = new List<int>();
         //очередь для воспроизведения
-        List<int> queue = new List<int>();
+        Queue<int> queue = new Queue<int>();
 
         //Кнопки для панели задач
         private ThumbnailToolBarButton buttonPlayPause;
@@ -3023,7 +3023,7 @@ namespace VkAudioWpf
 
         private void AddToQueue(int nextIndex)
         {
-            queue.Add(nextIndex);
+            queue.Enqueue(nextIndex);
             ShowNotiff("Додано в чергу");
         }
 
@@ -3032,8 +3032,7 @@ namespace VkAudioWpf
             int nextEl = -1;
             if (queue.Count > 0)
             {
-                nextEl = queue[0];
-                queue.RemoveAt(0);
+                nextEl = queue.Dequeue();
             }
             else
                 throw new Exception("Queue is empty");
