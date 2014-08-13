@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using Formms = System.Windows.Forms;
@@ -23,10 +20,8 @@ using System.Windows.Interop;
 using System.Windows.Controls.Primitives;
 using System.Net;
 using System.IO;
-using System.Windows.Media.Animation;
 using System.Xml.Linq;
 using System.Security.Cryptography;
-using System.Web;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security;
@@ -37,7 +32,7 @@ namespace VkAudioWpf
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     [SuppressUnmanagedCodeSecurityAttribute]
-    public sealed partial class MainWindow : Window,IDisposable
+    public sealed partial class MainWindow : Window, IDisposable
     {
 
         //форма авторизации
@@ -53,6 +48,8 @@ namespace VkAudioWpf
 
         //очередь для случайного воспроизведения
         List<int> cherga = new List<int>();
+        //очередь для воспроизведения
+        List<int> queue = new List<int>();
 
         //Кнопки для панели задач
         private ThumbnailToolBarButton buttonPlayPause;
@@ -134,17 +131,15 @@ namespace VkAudioWpf
             if (sett.LastSessionKey != "")
                 logInLastButton_Click(new object(), new RoutedEventArgs());
 
-            if (sett.VolumeLevel != null)
-            {
-                volumeBar.Value = sett.VolumeLevel * 100;
-                player.ChangeVolume(sett.VolumeLevel);
-            }
+            volumeBar.Value = sett.VolumeLevel * 100;
+            player.ChangeVolume(sett.VolumeLevel);
+
             checkBoxRepeat.IsChecked = sett.EnableRepeating;
             checkBoxShuffle.IsChecked = sett.EnableShuffling;
             playlistButton.IsChecked = sett.EnableViewPlaylist;
             BroadcastToVKButton.IsChecked = sett.EnableVKBroadcast;
 
-            globalKeyThread=null;
+            globalKeyThread = null;
         }
 
         void timerScrobble_Tick(object sender, EventArgs e)
@@ -806,6 +801,11 @@ namespace VkAudioWpf
         {
             if (playlist != null && playlist.Count() > 0)
             {
+                if (CheckQueue())
+                {
+                    playlist.SelTrack = GetNextFromQueue();
+                }
+                else
                 if (checkBoxShuffle.IsChecked == true)
                 {
                     if (currInCherga < cherga.Count - 1 && cherga.Count > 0 && currInCherga != -1)
@@ -901,16 +901,16 @@ namespace VkAudioWpf
                 listBox.SelectedIndex = playlist.SelTrack;
             else
                 if (albums.GetSelectedAlbum() != null && playlist == albums.GetSelectedAlbum().playlist)
-                    listAlbumBox.SelectedIndex = playlist.SelTrack;
-                else
+                listAlbumBox.SelectedIndex = playlist.SelTrack;
+            else
                     if (playlist == users.GetSelectedUserPlaylist())
-                        listUserTracksBox.SelectedIndex = playlist.SelTrack;
-                    else
+                listUserTracksBox.SelectedIndex = playlist.SelTrack;
+            else
                         if (playlist == search.Playlist)
-                            listSearchedTracksBox.SelectedIndex = playlist.SelTrack;
-                        else
+                listSearchedTracksBox.SelectedIndex = playlist.SelTrack;
+            else
                             if (playlist == recommendations.Playlist)
-                                listRecommedTracksBox.SelectedIndex = playlist.SelTrack;
+                listRecommedTracksBox.SelectedIndex = playlist.SelTrack;
 
             player.Play();
 
@@ -918,8 +918,8 @@ namespace VkAudioWpf
             titleLabel.Content = currSong.Name;
 
             progressBar.Minimum = 0;
-                progressBar.Maximum = int.Parse(((AudioVK)currSong).duration);
-                endTime.Content = ((AudioVK)currSong).DurationString;
+            progressBar.Maximum = int.Parse(((AudioVK)currSong).duration);
+            endTime.Content = ((AudioVK)currSong).DurationString;
 
             timer.Enabled = true;
 
@@ -929,11 +929,11 @@ namespace VkAudioWpf
             var tmpStr = titleLabel.Content.ToString();
             var str = tmpStr.Length > 64 ? tmpStr.Substring(0, 64) : tmpStr;
             //notifyIcon1.ShowBalloonTip(500, "Наступний трек", str, ToolTipIcon.Info);
-            GetAlbumArt(((AudioVK)currSong).artist, ((AudioVK)currSong).title,((AudioVK)currSong).aid);
+            GetAlbumArt(((AudioVK)currSong).artist, ((AudioVK)currSong).title, ((AudioVK)currSong).aid);
 
         }
 
-        private void GetAlbumArt(string artist, string title,string aid)
+        private void GetAlbumArt(string artist, string title, string aid)
         {
             new Thread(() =>
                 {
@@ -947,105 +947,106 @@ namespace VkAudioWpf
                     }), null);
 
                     if (Settings.CheckImage(aid + ".jpg").Trim() != "")
-                    {this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
-                        {
-                        bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        string path = Settings.CheckImage(aid + ".jpg").Trim();
-                        bitmap.UriSource = new Uri(path, UriKind.Absolute);
-                        bitmap.EndInit();
+                    {
+                        this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                           {
+                               bitmap = new BitmapImage();
+                               bitmap.BeginInit();
+                               string path = Settings.CheckImage(aid + ".jpg").Trim();
+                               bitmap.UriSource = new Uri(path, UriKind.Absolute);
+                               bitmap.EndInit();
 
-                        pictureBox.Source = bitmap;
-                        SetTaskbarthumbnail();
+                               pictureBox.Source = bitmap;
+                               SetTaskbarthumbnail();
 
-                        return null;
+                               return null;
 
-                        }), null);
+                           }), null);
                     }
                     else
-                    try
-                    {
-
-                        string url = "http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=b7d62b44095bbe482030e12b4aa33572&artist=" + RemoveOtherSymbols(artist) + "&track=" + RemoveOtherSymbols(title);
-                        XDocument doc = XDocument.Load(url);
-
-                        var album = doc.Descendants("album");
-
-                        var image = album.Elements().ToArray()[6].Value;
-
-                        if (image != "")
-                        {
-                            this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
-                        {
-                            bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            if (Settings.CheckImage(aid + ".jpg").Trim() == "")
-                                Settings.DownloadRemoteImageFile(image, aid + ".jpg");
-                            string path = Settings.CheckImage(aid + ".jpg").Trim();
-                            if (path != "")
-                                bitmap.UriSource = new Uri(path, UriKind.Absolute);
-                            else
-                                bitmap.UriSource = new Uri(image, UriKind.Absolute);
-                            bitmap.EndInit();
-
-                            pictureBox.Source = bitmap;
-                            SetTaskbarthumbnail();
-
-                            return null;
-
-                        }), null);
-                        }
-                        return;
-                    }
-                    catch
-                    {
                         try
                         {
-                            string url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&api_key=b7d62b44095bbe482030e12b4aa33572&artist=" + RemoveOtherSymbols(artist);
+
+                            string url = "http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=b7d62b44095bbe482030e12b4aa33572&artist=" + RemoveOtherSymbols(artist) + "&track=" + RemoveOtherSymbols(title);
                             XDocument doc = XDocument.Load(url);
 
-                            var album = doc.Descendants("artist");
+                            var album = doc.Descendants("album");
 
                             var image = album.Elements().ToArray()[6].Value;
-
 
                             if (image != "")
                             {
                                 this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
-                                {
-                                    bitmap = new BitmapImage();
-                                    bitmap.BeginInit();
-                                    if (Settings.CheckImage(aid + ".jpg").Trim() == "")
-                                        Settings.DownloadRemoteImageFile(image, aid + ".jpg");
-                                    string path = Settings.CheckImage(aid + ".jpg").Trim();
-                                    if (path != "")
-                                        bitmap.UriSource = new Uri(path, UriKind.Absolute);
-                                    else
-                                        bitmap.UriSource = new Uri(image, UriKind.Absolute);
-                                    bitmap.EndInit();
+                            {
+                                bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                if (Settings.CheckImage(aid + ".jpg").Trim() == "")
+                                    Settings.DownloadRemoteImageFile(image, aid + ".jpg");
+                                string path = Settings.CheckImage(aid + ".jpg").Trim();
+                                if (path != "")
+                                    bitmap.UriSource = new Uri(path, UriKind.Absolute);
+                                else
+                                    bitmap.UriSource = new Uri(image, UriKind.Absolute);
+                                bitmap.EndInit();
 
-                                    pictureBox.Source = bitmap;
-                                    SetTaskbarthumbnail();
+                                pictureBox.Source = bitmap;
+                                SetTaskbarthumbnail();
 
-                                    return null;
+                                return null;
 
-                                }), null);
+                            }), null);
                             }
                             return;
                         }
                         catch
                         {
-                            this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                            try
                             {
+                                string url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&api_key=b7d62b44095bbe482030e12b4aa33572&artist=" + RemoveOtherSymbols(artist);
+                                XDocument doc = XDocument.Load(url);
 
-                                pictureBox.Source = null;
+                                var album = doc.Descendants("artist");
 
-                                return null;
+                                var image = album.Elements().ToArray()[6].Value;
 
-                            }), null);
+
+                                if (image != "")
+                                {
+                                    this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                                    {
+                                        bitmap = new BitmapImage();
+                                        bitmap.BeginInit();
+                                        if (Settings.CheckImage(aid + ".jpg").Trim() == "")
+                                            Settings.DownloadRemoteImageFile(image, aid + ".jpg");
+                                        string path = Settings.CheckImage(aid + ".jpg").Trim();
+                                        if (path != "")
+                                            bitmap.UriSource = new Uri(path, UriKind.Absolute);
+                                        else
+                                            bitmap.UriSource = new Uri(image, UriKind.Absolute);
+                                        bitmap.EndInit();
+
+                                        pictureBox.Source = bitmap;
+                                        SetTaskbarthumbnail();
+
+                                        return null;
+
+                                    }), null);
+                                }
+                                return;
+                            }
+                            catch
+                            {
+                                this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new System.Windows.Threading.DispatcherOperationCallback(delegate
+                                {
+
+                                    pictureBox.Source = null;
+
+                                    return null;
+
+                                }), null);
+                            }
+
                         }
-
-                    }
 
                 }).Start();
 
@@ -1074,7 +1075,7 @@ namespace VkAudioWpf
                     int keyPause = 200;
 
                     if (res1 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
-                        App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
+                        App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate ()
                         {
                             PlayPauseButton();
                             lastInput = DateTime.Now;
@@ -1082,33 +1083,33 @@ namespace VkAudioWpf
                         }));
                     else
                         if (res2 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
-                            App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
-                            {
-                                PrevTrack();
-                                lastInput = DateTime.Now;
-                                return;
-                            }));
-                        else
+                        App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate ()
+                        {
+                            PrevTrack();
+                            lastInput = DateTime.Now;
+                            return;
+                        }));
+                    else
                             if (res3 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
-                                App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
-                                {
-                                    NextTrack();
-                                    lastInput = DateTime.Now;
-                                    return;
-                                }));
-                            else
+                        App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate ()
+                        {
+                            NextTrack();
+                            lastInput = DateTime.Now;
+                            return;
+                        }));
+                    else
                                 if (res4 != 0 && (DateTime.Now - lastInput).Milliseconds > keyPause)
-                                    App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate()
-                                    {
-                                        player.Stop();
-                                        lastInput = DateTime.Now;
-                                        return;
-                                    }));
+                        App.Current.Dispatcher.Invoke(new Formms.MethodInvoker(delegate ()
+                        {
+                            player.Stop();
+                            lastInput = DateTime.Now;
+                            return;
+                        }));
                     Thread.Sleep(50);
                 }
             });
             globalKeyThread.Start();
-                
+
         }
 
         public const int VK_VOLUME_MUTE = 0xAD;
@@ -1138,41 +1139,43 @@ namespace VkAudioWpf
                 countPrevValue++;
             else
                 countPrevValue = 0;
-                        if (progressBar.Value >= progressBar.Maximum || countPrevValue>3)
-                        {
-                            countPrevValue = 0;
-                            if (sett.EnableRepeating)
-                                PlayTrack();
-                            else
-                                NextTrack();
-                        }
-                        prevValue = progressBar.Value;
-                        try
-                        {
-                            if (progressBar.Value <= progressBar.Maximum)
-                            {
-                                ChangeProggressBackGround();
-                                progressBar.Value = (int)player.CurruntPosition;
-                                startTime.Content = player.CurruntPositionString;
-                                tbManager.SetProgressValue((int)progressBar.Value, (int)progressBar.Maximum, Process.GetCurrentProcess().MainWindowHandle);
-                            }
+            if (progressBar.Value >= progressBar.Maximum || countPrevValue > 3)
+            {
+                countPrevValue = 0;
+                if (sett.EnableRepeating)
+                    PlayTrack();
+                else
+                    NextTrack();
+            }
+            prevValue = progressBar.Value;
+            try
+            {
+                if (progressBar.Value <= progressBar.Maximum)
+                {
+                    ChangeProggressBackGround();
+                    progressBar.Value = (int)player.CurruntPosition;
+                    startTime.Content = player.CurruntPositionString;
+                    tbManager.SetProgressValue((int)progressBar.Value, (int)progressBar.Maximum, Process.GetCurrentProcess().MainWindowHandle);
+                }
 
-                        }
-                        catch { }
-                        if (sett.LastSessionKey!="" && listedTime >= scrobbleTime && !IsScrobled)
-                        {
-                            var currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
-                            try
-                            {
-                                ScrobbleTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
-                                IsScrobled = true;
-                            }
-                            catch { }
-                            timerScrobble.Stop();
-                        }
-                //        return null;
-                //    }), null);
-                //});
+            }
+            catch
+            { }
+            if (sett.LastSessionKey != "" && listedTime >= scrobbleTime && !IsScrobled)
+            {
+                var currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
+                try
+                {
+                    ScrobbleTrack(((AudioVK)currSong).title, ((AudioVK)currSong).artist);
+                    IsScrobled = true;
+                }
+                catch
+                { }
+                timerScrobble.Stop();
+            }
+            //        return null;
+            //    }), null);
+            //});
 
         }
 
@@ -1215,7 +1218,7 @@ namespace VkAudioWpf
         }
 
         #region Player events handled here
-        void engine_StatusChanged(PLAYER_STATUS status,EventArgs e)
+        void engine_StatusChanged(PLAYER_STATUS status, EventArgs e)
         {
             switch (status)
             {
@@ -1285,7 +1288,7 @@ namespace VkAudioWpf
             ChangePlayPauseIconInButton(true);
             tbManager.SetProgressState(TaskbarProgressBarState.Normal);
             timer.Start();
-            if (!IsScrobled && sett.LastSessionKey!="")
+            if (!IsScrobled && sett.LastSessionKey != "")
                 timerScrobble.Start();
 
             buttonPlayPause.Icon = Properties.Resources.Hopstarter_Button_Button_Pause;
@@ -1497,6 +1500,8 @@ namespace VkAudioWpf
             {
                 DoubleListBoxClick();
             }
+            if (e.Key == Key.Q)
+                AddToQueue(listBox.SelectedIndex);
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -1662,7 +1667,7 @@ namespace VkAudioWpf
                     ((PlayListVk)playlist).SortByDate();
                 else
                     if (sortCombobox.SelectedIndex == 1)
-                        ((PlayListVk)playlist).SortByName();
+                    ((PlayListVk)playlist).SortByName();
 
                 FillListBox((PlayListVk)playlist, listBox, false, true, true);
                 if (currTrack != null)
@@ -1688,16 +1693,16 @@ namespace VkAudioWpf
                 }
                 else
                     if (i - 4 >= 0 && inputStr[i - 4] == '&' && inputStr[i - 3] == 'a' && inputStr[i - 2] == 'm' && inputStr[i - 1] == 'p' && inputStr[i] == ';')
-                    {
-                        if (i + 1 < inputStr.Length && inputStr[i + 1] != ' ')
-                            outputStr += inputStr[i] + " ";
-                        else
-                            outputStr += inputStr[i];
-                        continue;
-                    }
+                {
+                    if (i + 1 < inputStr.Length && inputStr[i + 1] != ' ')
+                        outputStr += inputStr[i] + " ";
                     else
+                        outputStr += inputStr[i];
+                    continue;
+                }
+                else
                         if (Char.IsLetterOrDigit(inputStr[i]) || Char.IsWhiteSpace(inputStr[i]))
-                            outputStr += inputStr[i];
+                    outputStr += inputStr[i];
             }
             return outputStr;
         }
@@ -2071,7 +2076,7 @@ namespace VkAudioWpf
                         pls.SortByDate();
                     else
                         if (sortInAlbumCombobox.SelectedIndex == 1)
-                            pls.SortByName();
+                        pls.SortByName();
 
                     FillListBox(pls, listAlbumBox, false, true, false);
                     if (currTrack != null)
@@ -2135,12 +2140,12 @@ namespace VkAudioWpf
             }
             else
                 if (albums.Count() > 0)
-                {
-                    albumsCombobox.SelectedIndex = 0;
-                    albumsCombobox_SelectionChanged(null, null);
-                    curAlbum = albums.GetSelectedAlbum();
-                    tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
-                }
+            {
+                albumsCombobox.SelectedIndex = 0;
+                albumsCombobox_SelectionChanged(null, null);
+                curAlbum = albums.GetSelectedAlbum();
+                tracksCountAlbumLabel.Content = albums.GetSelectedAlbum().playlist.Count() + " треків";
+            }
             if (selectedTracks != null)
                 albums.SetSelectedTracksForAlbum(selectedTracks);
 
@@ -2375,11 +2380,11 @@ namespace VkAudioWpf
                     }
                     else
                         if (!users.IsCurrentUserFillTracks)
-                        {
-                            FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false, false);
-                            users.CurrentUserFilledTracks();
-                            GetCurrentUserTrack_Click(sender, e);
-                        }
+                    {
+                        FillListBox(users.GetSelectedUserPlaylist(), listUserTracksBox, true, false, false);
+                        users.CurrentUserFilledTracks();
+                        GetCurrentUserTrack_Click(sender, e);
+                    }
                 }
                 else
                 {
@@ -2423,7 +2428,7 @@ namespace VkAudioWpf
                         pls.SortByDate();
                     else
                         if (sortInUserTracksCombobox.SelectedIndex == 1)
-                            pls.SortByName();
+                        pls.SortByName();
 
                     FillListBox(pls, listUserTracksBox, true, false, false);
                     users.CurrentUserFilledTracks();
@@ -2996,8 +3001,8 @@ namespace VkAudioWpf
         public void Dispose()
         {
             users.Dispose();
-            if(globalKeyThread!=null && globalKeyThread.IsAlive)
-            globalKeyThread.Abort();
+            if (globalKeyThread != null && globalKeyThread.IsAlive)
+                globalKeyThread.Abort();
             buttonNext.Dispose();
             buttonPlayPause.Dispose();
             buttonPrevious.Dispose();
@@ -3014,6 +3019,30 @@ namespace VkAudioWpf
         private void TabFriendsLostFocus(object sender, RoutedEventArgs e)
         {
             users.StopTimer();
+        }
+
+        private void AddToQueue(int nextIndex)
+        {
+            queue.Add(nextIndex);
+            ShowNotiff("Додано в чергу");
+        }
+
+        private int GetNextFromQueue()
+        {
+            int nextEl = -1;
+            if (queue.Count > 0)
+            {
+                nextEl = queue[0];
+                queue.RemoveAt(0);
+            }
+            else
+                throw new Exception("Queue is empty");
+            return nextEl;
+        }
+
+        private bool CheckQueue()
+        {
+            return queue.Count > 0;
         }
     }
 }
