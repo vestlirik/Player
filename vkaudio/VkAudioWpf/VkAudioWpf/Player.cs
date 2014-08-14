@@ -373,5 +373,10 @@ namespace vkAudio
             Bass.BASS_Free();
             stream = 0;
         }
+
+        internal int GetStream()
+        {
+            return stream;
+        }
     }
 }

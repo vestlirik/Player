@@ -319,6 +319,7 @@
             
             <StackPanel Width="800">
                 <Border BorderThickness="0,0,0,1" BorderBrush="Black">
+                    
                     <Grid Height="30px" Background="Silver" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="30px"/>
@@ -383,7 +384,7 @@
                                 <ToggleButton  Style="{StaticResource toggle}" IsChecked="True" HorizontalAlignment="Right" Name="playlistButton" DockPanel.Dock="Right" Height="50px" Width="50px" Click="playlistButton_Click" ToolTip="Show playlist">
                                     PL
                                 </ToggleButton>
-                                <ToggleButton  Style="{StaticResource toggle}" HorizontalAlignment="Right" DockPanel.Dock="Right" Height="50px" Width="50px" ToolTip="Show equalizer">
+                                <ToggleButton  Style="{StaticResource toggle}" HorizontalAlignment="Right" DockPanel.Dock="Right" Height="50px" Width="50px" ToolTip="Show equalizer" Click="ToggleButton_Click_2">
                                     EQ
                                 </ToggleButton>
                                 <ToggleButton Style="{StaticResource toggle}" IsChecked="False" HorizontalAlignment="Right" DockPanel.Dock="Right"  Height="50px" Width="50px" x:Name="checkBoxShuffle"  Checked="checkBoxShuffle_Checked" ToolTip="Shuffle">

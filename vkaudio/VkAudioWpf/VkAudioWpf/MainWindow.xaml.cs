@@ -3043,5 +3043,11 @@ namespace VkAudioWpf
         {
             return queue.Count > 0;
         }
+
+        private void ToggleButton_Click_2(object sender, RoutedEventArgs e)
+        {
+            Equalizer eqalizer = new Equalizer(player.GetStream());
+            eqalizer.Show();
+        }
     }
 }
