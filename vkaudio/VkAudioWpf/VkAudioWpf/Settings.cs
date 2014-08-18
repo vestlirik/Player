@@ -7,11 +7,12 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Un4seen.Bass;
 
 namespace VkAudioWpf
 {
     [Serializable]
-    class Settings:ISerializable
+    public class Settings:ISerializable
     {
         public string LastSessionKey = "";
 
@@ -24,6 +25,11 @@ namespace VkAudioWpf
         public bool EnableViewPlaylist = true;
 
         public double VolumeLevel = 1;
+
+        private int _stream;
+        private int _handle;
+
+        private EqualizerSettings eqalizer;
 
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -38,11 +44,20 @@ namespace VkAudioWpf
             info.AddValue("EnableShuffling", EnableShuffling);
             info.AddValue("EnableViewPlaylist", EnableViewPlaylist);
             info.AddValue("VolumeLevel", VolumeLevel);
+            for (int i = 0; i < 12; i++)
+            info.AddValue("EQ"+i, eqalizer._vlEQ[i]);
 
+        }
+
+        internal float[] GetEQValues()
+        {
+            return eqalizer.GetValues();
         }
 
         public Settings(SerializationInfo info, StreamingContext context)
         {
+            if (eqalizer == null)
+                eqalizer = new EqualizerSettings();
             LastSessionKey = (string)info.GetValue("LastSess",typeof(string));
             VKToken = (string)info.GetValue("VKToken", typeof(string));
             UserId = (string)info.GetValue("VKId", typeof(string));
@@ -51,10 +66,54 @@ namespace VkAudioWpf
             EnableShuffling = (bool)info.GetValue("EnableShuffling", typeof(bool));
             EnableViewPlaylist = (bool)info.GetValue("EnableViewPlaylist", typeof(bool));
             VolumeLevel = (double)info.GetValue("VolumeLevel", typeof(double));
+            for (int i = 0; i < 12; i++)
+                eqalizer._vlEQ[i] = (float)info.GetValue("EQ"+i, typeof(float));
         }
 
         public Settings()
         {
+            if (eqalizer==null)
+            eqalizer = new EqualizerSettings();
+        }
+
+        public void ChangeStream(int stream)
+        {
+            _stream = stream;
+            _handle = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
+            EqualizerApplyForNewTrack();
+        }
+
+        public void ChangeEqValue(int band,float value)
+        {
+            eqalizer.ChangeValue(band, value);
+            UpdateEQ(band);
+        }
+
+        private void UpdateEQ(int band)
+        {
+            BASS_DX8_PARAMEQ eq = new BASS_DX8_PARAMEQ();
+            if (Bass.BASS_FXGetParameters(eqalizer._fxEQ[band], eq))
+            {
+                eq.fGain = eqalizer.GetValueByIndex(band);
+                Bass.BASS_FXSetParameters(eqalizer._fxEQ[band], eq);
+            }
+        }
+
+        public void EqualizerApplyForNewTrack()
+        {
+            BASS_DX8_PARAMEQ eq = new BASS_DX8_PARAMEQ();
+            for (int i = 0; i < 12; i++)
+            {
+                eqalizer._fxEQ[i] = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
+            }
+            eq.fBandwidth = 18f;
+
+            for (int i = 0; i < 12; i++)
+            {
+                eq.fCenter = eqalizer.GetFraquencyByIndex(0);
+                eq.fGain = eqalizer.GetValueByIndex(0);
+                Bass.BASS_FXSetParameters(eqalizer._fxEQ[0], eq);
+            }
 
         }
 
@@ -119,7 +178,7 @@ namespace VkAudioWpf
                 }
             }
         }
-
+        
         public static string CheckImage(string name)
         {
             string path = Directory.GetCurrentDirectory();

@@ -99,10 +99,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="WPFSoundVisualizationLib, Version=0.4.5339.40762, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Downloads\wpfsvl-16372\WPFSoundVisualizationLib\Main\Source\WPFSoundVisualizationLibrary\bin\Debug\WPFSoundVisualizationLib.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -114,6 +110,7 @@
     <Compile Include="Equalizer.xaml.cs">
       <DependentUpon>Equalizer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EqualizerSettings.cs" />
     <Compile Include="FriendList.cs" />
     <Compile Include="Reccomendations.cs" />
     <Compile Include="Search.cs" />
@@ -126,10 +123,6 @@
     <Page Include="Equalizer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ExpressionDark.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

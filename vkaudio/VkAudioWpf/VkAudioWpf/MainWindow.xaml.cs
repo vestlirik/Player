@@ -68,6 +68,7 @@ namespace VkAudioWpf
 
         private Thread globalKeyThread;
 
+        Equalizer eqalizer;
 
 
         public MainWindow()
@@ -334,6 +335,7 @@ namespace VkAudioWpf
 
         private void FillListBox(PlayListVk pls, ListBox listbx, bool allowAdding, bool allowDeleting, bool isMyAudioTab)
         {
+            int count = 1;
             listbx.Items.Clear();
             foreach (var elm in pls.GetTrackListVK())
             {
@@ -386,10 +388,11 @@ namespace VkAudioWpf
 
                 #region add elements in grid for listboxitem
                 System.Windows.Controls.Label lbl = new System.Windows.Controls.Label();
-                lbl.Content = elm.artist + " - " + elm.title;
+                lbl.Content = count + ". " + elm.artist + " - " + elm.title;
                 Grid.SetColumn(lbl, colemn);
                 colemn++;
                 grid.Children.Add(lbl);
+                count++;
 
                 lbl = new System.Windows.Controls.Label();
                 lbl.Content = elm.DurationString;
@@ -801,7 +804,7 @@ namespace VkAudioWpf
         {
             if (playlist != null && playlist.Count() > 0)
             {
-                if (playlist==playlistAll && CheckQueue())
+                if (playlist == playlistAll && CheckQueue())
                 {
                     playlist.SelectTrackByAid(GetNextFromQueue());
                 }
@@ -874,6 +877,7 @@ namespace VkAudioWpf
             var plstType = playlist.GetType();
             currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
             player.AttachTrack((AudioVK)currSong);
+            sett.ChangeStream(player.GetStream());
             //set status
             var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
             if (sett.EnableVKBroadcast)
@@ -3046,8 +3050,23 @@ namespace VkAudioWpf
 
         private void ToggleButton_Click_2(object sender, RoutedEventArgs e)
         {
-            Equalizer eqalizer = new Equalizer(player.GetStream());
-            eqalizer.Show();
+            if (((ToggleButton)sender).IsChecked == true)
+            {
+                if (eqalizer == null)
+                {
+                    eqalizer = new Equalizer(sett);
+                    eqalizer.Closed += Eqalizer_Closed;
+                }
+                eqalizer.Show();
+            }
+            else
+                eqalizer.Close();
+        }
+
+        private void Eqalizer_Closed(object sender, EventArgs e)
+        {
+            eqalizer = null;
+            eqButton.IsChecked = false;
         }
     }
 }
