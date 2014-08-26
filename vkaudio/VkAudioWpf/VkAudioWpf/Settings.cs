@@ -106,7 +106,7 @@ namespace VkAudioWpf
             {
                 eqalizer._fxEQ[i] = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
             }
-            eq.fBandwidth = 18f;
+            eq.fBandwidth = 2.5f;
 
             for (int i = 0; i < 12; i++)
             {
