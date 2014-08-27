@@ -274,8 +274,8 @@ namespace VkAudioWpf
 
         public void StartTimer()
         {
-            UpdateUsers();
-            OnUsersUpdated();
+            //UpdateUsers();
+            //OnUsersUpdated();
             timer.Start();
         }
 

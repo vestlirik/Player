@@ -711,7 +711,6 @@ namespace VkAudioWpf
         }
 
 
-
         void lstItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             playlist = playlistAll;
@@ -874,9 +873,9 @@ namespace VkAudioWpf
         {
             prevValue = -1;
             Audio currSong = null;
-            var plstType = playlist.GetType();
             currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
-            player.AttachTrack((AudioVK)currSong);
+            bool needCache = IsNeedCache(playlist);
+            player.AttachTrack((AudioVK)currSong,needCache);
             sett.ChangeStream(player.GetStream());
             //set status
             var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
@@ -935,6 +934,15 @@ namespace VkAudioWpf
             //notifyIcon1.ShowBalloonTip(500, "Наступний трек", str, ToolTipIcon.Info);
             GetAlbumArt(((AudioVK)currSong).artist, ((AudioVK)currSong).title, ((AudioVK)currSong).aid);
 
+        }
+
+        private bool IsNeedCache(PlayListVk playlist)
+        {
+            if (playlist == playlistAll)
+                return true;
+            if (playlist == albums.GetSelectedAlbum().playlist)
+                return true;
+            return false;
         }
 
         private void GetAlbumArt(string artist, string title, string aid)
@@ -2341,15 +2349,18 @@ namespace VkAudioWpf
 
         private void loadFriendList()
         {
-            users = new FriendList(sett.UserId, sett.VKToken, GetAuth);
-            FillUsers(listUserBox);
-            users.OnUsersUpdated += users_OnUsersUpdated;
-            //
-            friendCombobox.Items.Clear();
-            friendCombobox.Items.Add("ALL");
-            foreach (var elm in users.GetGettedUsers())
+            if (users == null)
             {
-                friendCombobox.Items.Add(elm.first_name + " " + elm.last_name);
+                users = new FriendList(sett.UserId, sett.VKToken, GetAuth);
+                FillUsers(listUserBox);
+                users.OnUsersUpdated += users_OnUsersUpdated;
+                //
+                friendCombobox.Items.Clear();
+                friendCombobox.Items.Add("ALL");
+                foreach (var elm in users.GetGettedUsers())
+                {
+                    friendCombobox.Items.Add(elm.first_name + " " + elm.last_name);
+                }
             }
         }
 
@@ -2454,13 +2465,13 @@ namespace VkAudioWpf
                 string selTrack = "";
                 if (currTrack != null)
                     selTrack = currTrack.aid;
-                if (reverseInUserTracksButton.IsChecked == true)
+                if (((ToggleButton)sender).IsChecked == true)
                 {
                     pls.ReverseOn();
                 }
                 else
                     pls.ReverseOff();
-                FillListBox(pls, listAlbumBox, true, false, false);
+                FillListBox(pls, listUserTracksBox, true, false, false);
                 users.CurrentUserFilledTracks();
                 if (currTrack != null)
                 {
@@ -3017,6 +3028,8 @@ namespace VkAudioWpf
 
         private void TabFriendsGotFocus(object sender, RoutedEventArgs e)
         {
+            if(users==null)
+            loadFriendList();
             users.StartTimer();
         }
 
