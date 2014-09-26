@@ -69,25 +69,38 @@ namespace vkAudio
         }
 
        
-        public void AttachTrack(AudioVK track)
+        public void AttachTrack(AudioVK track,bool needCache)
         {
             Bass.BASS_Free();
-            Settings.CheckCurrFolder(FOLDER_PATH);
-            if (_fs != null)
+            if (needCache)
             {
-                _fs.Close();
-                _fs = null;
-            }
-            string filepath = Directory.GetCurrentDirectory()+"\\"+FOLDER_PATH + "\\" + track.aid+".mp3";
-            if (File.Exists(filepath))
-                if (int.Parse(GetDuration(filepath)) >= (int.Parse(track.duration) - 1) && int.Parse(GetDuration(filepath)) <= (int.Parse(track.duration) + 1))
-                AttachSong(filepath);
+                Settings.CheckCurrFolder(FOLDER_PATH);
+                if (_fs != null)
+                {
+                    _fs.Close();
+                    _fs = null;
+                }
+                string filepath = Directory.GetCurrentDirectory() + "\\" + FOLDER_PATH + "\\" + track.aid + ".mp3";
+                if (File.Exists(filepath))
+                    if (int.Parse(GetDuration(filepath)) >= (int.Parse(track.duration) - 1) && int.Parse(GetDuration(filepath)) <= (int.Parse(track.duration) + 1) && CheckSize(track.GetLocation, filepath))
+                        AttachSong(filepath);
+                    else
+                        AttachUrlSong(track,needCache);
                 else
-                AttachUrlSong(track);
+                    AttachUrlSong(track,needCache);
+            }
             else
-                AttachUrlSong(track);
+                AttachUrlSong(track,needCache);
         }
 
+        private bool CheckSize(string uri,string filepath)
+        {
+            var rq = WebRequest.Create(uri);
+            rq.Method = "HEAD";
+            var resp = (HttpWebResponse)rq.GetResponse();
+            var length = resp.ContentLength;
+            return length == new FileInfo(filepath).Length;
+        }
 
         private void AttachSong(String url)
         {
@@ -106,7 +119,7 @@ namespace vkAudio
             }
         }
         //attach from internet
-        private void AttachUrlSong(AudioVK track)
+        private void AttachUrlSong(AudioVK track,bool needCache)
         {
             if (track != null)
             {
@@ -116,7 +129,10 @@ namespace vkAudio
                 //destroy current playing stream
                 Bass.BASS_Free();
                 Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
+                if (needCache)
                 stream = Bass.BASS_StreamCreateURL(track.GetLocation, 0, BASSFlag.BASS_DEFAULT, _myDownloadProc, IntPtr.Zero);
+                else
+                    stream = Bass.BASS_StreamCreateURL(track.GetLocation, 0, BASSFlag.BASS_DEFAULT, null, IntPtr.Zero);
 
                 // pre-buffer
                 Bass.BASS_ChannelUpdate(stream, 0);
