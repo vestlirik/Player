@@ -881,7 +881,11 @@ namespace VkAudioWpf
             //set status
             var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
             if (sett.EnableVKBroadcast)
-                ((PlayListVk)playlist).SetStatus(audioId, sett.VKToken);
+                try
+                {
+                    ((PlayListVk)playlist).SetStatus(audioId, sett.VKToken);
+                }
+                catch { }
             //scrobble
             if (sett.LastSessionKey != "")
             {
@@ -985,7 +989,11 @@ namespace VkAudioWpf
                                 bitmap = new BitmapImage();
                                 bitmap.BeginInit();
                                 if (Settings.CheckImage(aid + ".jpg").Trim() == "")
-                                    Settings.DownloadRemoteImageFile(image, aid + ".jpg");
+                                    try
+                                    {
+                                        Settings.DownloadRemoteImageFile(image, aid + ".jpg");
+                                    }
+                                    catch { }
                                 string path = Settings.CheckImage(aid + ".jpg").Trim();
                                 if (path != "")
                                     bitmap.UriSource = new Uri(path, UriKind.Absolute);
@@ -1021,7 +1029,12 @@ namespace VkAudioWpf
                                         bitmap = new BitmapImage();
                                         bitmap.BeginInit();
                                         if (Settings.CheckImage(aid + ".jpg").Trim() == "")
-                                            Settings.DownloadRemoteImageFile(image, aid + ".jpg");
+                                            try
+                                            {
+                                                Settings.DownloadRemoteImageFile(image, aid + ".jpg");
+                                            }
+                                            catch { }
+
                                         string path = Settings.CheckImage(aid + ".jpg").Trim();
                                         if (path != "")
                                             bitmap.UriSource = new Uri(path, UriKind.Absolute);
@@ -2341,15 +2354,18 @@ namespace VkAudioWpf
 
         private void loadFriendList()
         {
-            users = new FriendList(sett.UserId, sett.VKToken, GetAuth);
-            FillUsers(listUserBox);
-            users.OnUsersUpdated += users_OnUsersUpdated;
-            //
-            friendCombobox.Items.Clear();
-            friendCombobox.Items.Add("ALL");
-            foreach (var elm in users.GetGettedUsers())
+            if (users  == null)
             {
-                friendCombobox.Items.Add(elm.first_name + " " + elm.last_name);
+                users = new FriendList(sett.UserId, sett.VKToken, GetAuth);
+                FillUsers(listUserBox);
+                users.OnUsersUpdated += users_OnUsersUpdated;
+                //
+                friendCombobox.Items.Clear();
+                friendCombobox.Items.Add("ALL");
+                foreach (var elm in users.GetGettedUsers())
+                {
+                    friendCombobox.Items.Add(elm.first_name + " " + elm.last_name);
+                }
             }
         }
 
@@ -3017,6 +3033,8 @@ namespace VkAudioWpf
 
         private void TabFriendsGotFocus(object sender, RoutedEventArgs e)
         {
+            if (users == null)
+                loadFriendList();
             users.StartTimer();
         }
 

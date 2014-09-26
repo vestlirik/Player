@@ -261,7 +261,11 @@ namespace VkAudioWpf
             BitmapImage bitmap = new BitmapImage();
             bitmap.BeginInit();
             if(Settings.CheckImage(photo_50.Split('/').Last()).Trim()=="")
-                Settings.DownloadRemoteImageFile(this.photo_50,photo_50.Split('/').Last());
+                try
+                {
+                    Settings.DownloadRemoteImageFile(this.photo_50, photo_50.Split('/').Last());
+                }
+                catch { }
             string path = Settings.CheckImage(photo_50.Split('/').Last()).Trim();
             if(path!="")
                 bitmap.UriSource = new Uri(path,UriKind.Absolute);
