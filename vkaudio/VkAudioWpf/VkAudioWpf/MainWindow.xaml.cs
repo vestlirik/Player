@@ -2385,7 +2385,6 @@ namespace VkAudioWpf
             else
             {
                 //updating
-                FillUsers(listUserBox);
             }
             if (selUser.Trim().Length > 0)
                 listUserBox.SelectedIndex = users.SelectUserById(selUser);
