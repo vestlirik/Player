@@ -46,8 +46,8 @@ namespace VkAudioWpf
 
         void timer_Tick(object sender, EventArgs e)
         {
-            UpdateUsers();
-            OnUsersUpdated();
+            //UpdateUsers();
+            //OnUsersUpdated();
         }
 
         public int Count()

@@ -11,8 +11,8 @@ namespace VkAudioWpf
         private System.Xml.XmlNode xmlNode;
         public string aid { get; protected set; }
         public string owner_id { get; protected set; }
-        public string artist { get; protected set; }
-        public string title { get; protected set; }
+        public string artist { get; set; }
+        public string title { get; set; }
         public string duration { get; protected set; }
         public string lyrics_id { get; protected set; }
         public string album_id { get; protected set; }

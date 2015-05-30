@@ -3011,11 +3011,23 @@ namespace VkAudioWpf
             {
                 string trackName = trackNameTextBox.Text.Trim();
                 string artistName = artistNameTextBox.Text.Trim();
+                editedTrack.artist = artistName;
+                editedTrack.title = trackName;
                 if (trackName.Length > 0 && artistName.Length > 0)
                 {
                     playlist.Edit(editedTrack, trackName, artistName, sett.VKToken);
                     popupTrack.IsOpen = false;
-                    updateButton_Click(sender, e);
+                    //update in list
+                    var index = ((PlayListVk)playlist).GetTrackListVK().FindIndex(x => x.aid == editedTrack.aid);
+                    if (index != null)
+                    {
+                        var element = (ListBoxItem)(listBox.Items.GetItemAt(index));
+                        var grid = element.Content as Grid;
+                        var label = grid.Children[0] as Label;
+                        string labelText=label.Content.ToString();
+                        string number = labelText.Substring(0, labelText.IndexOf('.'));
+                        label.Content = number + ". " + artistName + " - " + trackName;
+                    }
                 }
             }
         }
