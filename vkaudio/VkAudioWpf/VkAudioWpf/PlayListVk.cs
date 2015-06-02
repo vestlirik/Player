@@ -194,6 +194,10 @@ namespace VkAudioWpf
         {
             tracks.Add(track);
         }
+        public void AddToStart(AudioVK track)
+        {
+            tracks.Insert(0, track);
+        }
 
         internal void Clear()
         {

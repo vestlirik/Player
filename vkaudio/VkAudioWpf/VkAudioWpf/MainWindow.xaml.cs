@@ -460,6 +460,7 @@ namespace VkAudioWpf
                     }
                     ShowNotiff("Аудіозапис додано");
                     //add song to my list
+                    playlistAll.AddToStart(elm);
                     var listItem = CreateListItem(listBox, elm, -1, true, true, true);
                     listBox.Items.Insert(0,listItem);
                 };
@@ -483,7 +484,7 @@ namespace VkAudioWpf
                 //cbx.IsReadOnly = true;
                 var albms = albums.GetAlbums();
                 cbx.Items.Add("Без альбому");
-                cbx.ToolTip = "Без пльбому";
+                cbx.ToolTip = "Без альбому";
                 foreach (var alb in albms)
                     cbx.Items.Add(alb);
                 cbx.SelectedIndex = 0;
