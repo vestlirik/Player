@@ -103,8 +103,12 @@ namespace VkAudioWpf
 
             for (int i = 0; i < length; i++)
             {
-                var audio = new AudioVK(audioElements.ChildNodes[i]);
-                tracks.Add(audio);
+                var child=audioElements.ChildNodes[i];
+                if (child.HasChildNodes)
+                {
+                    var audio = new AudioVK(child);
+                    tracks.Add(audio);
+                }
             }
         }
 
