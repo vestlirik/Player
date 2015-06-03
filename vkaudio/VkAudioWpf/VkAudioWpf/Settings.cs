@@ -7,7 +7,6 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Un4seen.Bass;
 
 namespace VkAudioWpf
 {
@@ -79,7 +78,7 @@ namespace VkAudioWpf
         public void ChangeStream(int stream)
         {
             _stream = stream;
-            _handle = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
+            //_handle = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
             EqualizerApplyForNewTrack();
         }
 
@@ -91,29 +90,29 @@ namespace VkAudioWpf
 
         private void UpdateEQ(int band)
         {
-            BASS_DX8_PARAMEQ eq = new BASS_DX8_PARAMEQ();
-            if (Bass.BASS_FXGetParameters(eqalizer._fxEQ[band], eq))
-            {
-                eq.fGain = eqalizer.GetValueByIndex(band);
-                Bass.BASS_FXSetParameters(eqalizer._fxEQ[band], eq);
-            }
+            //BASS_DX8_PARAMEQ eq = new BASS_DX8_PARAMEQ();
+            //if (Bass.BASS_FXGetParameters(eqalizer._fxEQ[band], eq))
+            //{
+            //    eq.fGain = eqalizer.GetValueByIndex(band);
+            //    Bass.BASS_FXSetParameters(eqalizer._fxEQ[band], eq);
+            //}
         }
 
         public void EqualizerApplyForNewTrack()
         {
-            BASS_DX8_PARAMEQ eq = new BASS_DX8_PARAMEQ();
-            for (int i = 0; i < 12; i++)
-            {
-                eqalizer._fxEQ[i] = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
-            }
-            eq.fBandwidth = 2.5f;
+            //BASS_DX8_PARAMEQ eq = new BASS_DX8_PARAMEQ();
+            //for (int i = 0; i < 12; i++)
+            //{
+            //    eqalizer._fxEQ[i] = Bass.BASS_ChannelSetFX(_stream, BASSFXType.BASS_FX_DX8_PARAMEQ, 0);
+            //}
+            //eq.fBandwidth = 2.5f;
 
-            for (int i = 0; i < 12; i++)
-            {
-                eq.fCenter = eqalizer.GetFraquencyByIndex(0);
-                eq.fGain = eqalizer.GetValueByIndex(0);
-                Bass.BASS_FXSetParameters(eqalizer._fxEQ[0], eq);
-            }
+            //for (int i = 0; i < 12; i++)
+            //{
+            //    eq.fCenter = eqalizer.GetFraquencyByIndex(0);
+            //    eq.fGain = eqalizer.GetValueByIndex(0);
+            //    Bass.BASS_FXSetParameters(eqalizer._fxEQ[0], eq);
+            //}
 
         }
 

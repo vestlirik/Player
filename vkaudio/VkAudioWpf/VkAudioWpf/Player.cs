@@ -1,4 +1,5 @@
 ﻿
+using System.Windows;
 using Microsoft.WindowsAPICodePack.Shell;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Un4seen.Bass;
+using NAudio.Wave;
 using VkAudioWpf;
 
 namespace vkAudio
@@ -24,16 +25,18 @@ namespace vkAudio
         PLAYER_STATUS_ENDED,
     };
 
-    public sealed class Player:IDisposable
+    public sealed class Player : IDisposable
     {
+        IWavePlayer waveOutDevice;
+        AudioFileReader audioFileReader;
+        private WaveStream blockAlignedStream;
+        private Stream ms;
+
         //Current status of the player
         PLAYER_STATUS curStatus;
 
-        //referance of current stream
-        int stream;
-
         //Delegate to let the clients know about Event change
-        public delegate void OnStatusUpdate(PLAYER_STATUS status,EventArgs e);
+        public delegate void OnStatusUpdate(PLAYER_STATUS status, EventArgs e);
 
         //Event for clients to subscribe to, if they want to get notfied.
         public event OnStatusUpdate StatusChanged;
@@ -41,7 +44,6 @@ namespace vkAudio
         private float volumeState = 1f;
 
         private FileStream _fs = null;
-        private DOWNLOADPROC _myDownloadProc;
         private byte[] _data; // local data buffer
         private AudioVK currTrack;
 
@@ -51,7 +53,7 @@ namespace vkAudio
         public string FOLDER
         {
             get { return FOLDER_PATH; }
-        } 
+        }
 
 
         private bool isLocal = false;
@@ -59,19 +61,16 @@ namespace vkAudio
 
         public Player()
         {
-            BassNet.Registration("vestlirik@ukr.net", "2X1723201782018");
             //engine initialization
-            Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
 
             //set default status
             curStatus = PLAYER_STATUS.PLAYER_STATUS_NOT_READY;
 
         }
 
-       
-        public void AttachTrack(AudioVK track,bool needCache)
+
+        public void AttachTrack(AudioVK track, bool needCache)
         {
-            Bass.BASS_Free();
             if (needCache)
             {
                 Settings.CheckCurrFolder(FOLDER_PATH);
@@ -80,20 +79,20 @@ namespace vkAudio
                     _fs.Close();
                     _fs = null;
                 }
-                string filepath = Directory.GetCurrentDirectory() + "\\" + FOLDER_PATH + "\\" + track.aid + ".mp3";
+                string filepath = Directory.GetCurrentDirectory() + "\\" + FOLDER_PATH + "\\" + track.aid + ".wav";
                 if (File.Exists(filepath))
                     if (int.Parse(GetDuration(filepath)) >= (int.Parse(track.duration) - 1) && int.Parse(GetDuration(filepath)) <= (int.Parse(track.duration) + 1) && CheckSize(track.GetLocation, filepath))
                         AttachSong(filepath);
                     else
-                        AttachUrlSong(track,needCache);
+                        AttachUrlSong(track, needCache);
                 else
-                    AttachUrlSong(track,needCache);
+                    AttachUrlSong(track, needCache);
             }
             else
-                AttachUrlSong(track,needCache);
+                AttachUrlSong(track, needCache);
         }
 
-        private bool CheckSize(string uri,string filepath)
+        private bool CheckSize(string uri, string filepath)
         {
             var rq = WebRequest.Create(uri);
             rq.Method = "HEAD";
@@ -108,34 +107,78 @@ namespace vkAudio
             {
                 isLocal = true;
                 //destroy current playing stream
-                Bass.BASS_Free();
-                Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
-                stream = Bass.BASS_StreamCreateFile(url, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT);
+                audioFileReader = new AudioFileReader(url);
 
                 // pre-buffer
-                Bass.BASS_ChannelUpdate(stream, 0);
+                if (waveOutDevice != null)
+                {
+                    waveOutDevice.Stop();
+                    waveOutDevice.Dispose();
+                }
+                waveOutDevice = new WaveOut(WaveCallbackInfo.FunctionCallback());
+                waveOutDevice.Init(audioFileReader);
+                waveOutDevice.Play();
 
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
         }
         //attach from internet
-        private void AttachUrlSong(AudioVK track,bool needCache)
+        private void AttachUrlSong(AudioVK track, bool needCache)
         {
             if (track != null)
             {
                 isLocal = false;
                 currTrack = track;
-                _myDownloadProc = new DOWNLOADPROC(MyDownload);
-                //destroy current playing stream
-                Bass.BASS_Free();
-                Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, System.IntPtr.Zero);
-                if (needCache)
-                stream = Bass.BASS_StreamCreateURL(track.GetLocation, 0, BASSFlag.BASS_DEFAULT, _myDownloadProc, IntPtr.Zero);
-                else
-                    stream = Bass.BASS_StreamCreateURL(track.GetLocation, 0, BASSFlag.BASS_DEFAULT, null, IntPtr.Zero);
+                ms = new MemoryStream();
 
-                // pre-buffer
-                Bass.BASS_ChannelUpdate(stream, 0);
+                new Thread(delegate(object o)
+                {
+                    var response = WebRequest.Create(track.GetLocation).GetResponse();
+                    using (var stream = response.GetResponseStream())
+                    {
+                        byte[] buffer = new byte[65536]; // 64KB chunks
+                        int read;
+                        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            var pos = ms.Position;
+                            ms.Position = ms.Length;
+                            ms.Write(buffer, 0, read);
+                            ms.Position = pos;
+                            if (ms.Position == ms.Length)
+                            {
+                                var mss = new MemoryStream();
+                                ms.CopyTo(mss);
+                                mss.Position = 0;
+
+                                using (var mp3Stream = new Mp3FileReader(mss))
+                                {
+                                    string filepath = Directory.GetCurrentDirectory() + "\\" + FOLDER_PATH + "\\" + track.aid + ".wav";
+                                    WaveFileWriter.CreateWaveFile(filepath, mp3Stream);
+                                }
+                            }
+                        }
+                        
+                        
+                    }
+                }).Start();
+
+
+                while (ms.Length < 65536 * 10)
+                    Thread.Sleep(100);
+
+
+                ms.Position = 0;
+
+                blockAlignedStream =
+                    new BlockAlignReductionStream(WaveFormatConversionStream.CreatePcmStream(new Mp3FileReader(ms)));
+                if (waveOutDevice != null)
+                {
+                    waveOutDevice.Stop();
+                    waveOutDevice.Dispose();
+                }
+                waveOutDevice = new WaveOut(WaveCallbackInfo.FunctionCallback());
+                waveOutDevice.Init(blockAlignedStream);
+                waveOutDevice.Play();
 
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
@@ -146,7 +189,7 @@ namespace vkAudio
         {
             if (curStatus != PLAYER_STATUS.PLAYER_STATUS_PLAYING)
             {
-                Bass.BASS_ChannelPlay(stream, false);
+                waveOutDevice.Play();
                 ChangeVolume(volumeState);
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_PLAYING);
             }
@@ -157,9 +200,7 @@ namespace vkAudio
         {
             if (curStatus != PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED)
             {
-
-                Bass.BASS_ChannelStop(stream);
-                Bass.BASS_Free();
+                waveOutDevice.Stop();
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_READY_STOPPED);
             }
         }
@@ -170,7 +211,7 @@ namespace vkAudio
             if (curStatus != PLAYER_STATUS.PLAYER_STATUS_PAUSED)
             {
 
-                Bass.BASS_ChannelPause(stream);
+                waveOutDevice.Pause();
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_PAUSED);
             }
         }
@@ -180,7 +221,7 @@ namespace vkAudio
         {
             if (curStatus == PLAYER_STATUS.PLAYER_STATUS_PAUSED)
             {
-                Bass.BASS_ChannelPlay(stream, false);
+                waveOutDevice.Play();
                 UpdateStatus(PLAYER_STATUS.PLAYER_STATUS_PLAYING);
             }
         }
@@ -191,41 +232,18 @@ namespace vkAudio
             return curStatus;
         }
 
-        //Duration of current song
-        public int Duration(string path)
-        {
-            // length in bytes 
-            long len = Bass.BASS_ChannelGetLength(stream);
-            // the time length 
-            double time = Bass.BASS_ChannelBytes2Seconds(stream, len);
-
-            return (int)time;
-        }
-
-        //Human readable duration string
-        public string DurationString(string path)
-        {
-            // length in bytes 
-            long len = Bass.BASS_ChannelGetLength(stream);
-            // the time length 
-            double time = Bass.BASS_ChannelBytes2Seconds(stream, len);
-
-            return TimeSpan.FromSeconds(time).Minutes + ":" + String.Format("{0:00}", TimeSpan.FromSeconds(time).Seconds);
-        }
 
         //Current play position
         public double CurruntPosition
         {
             get
             {
-                // length in bytes 
-                long len = Bass.BASS_ChannelGetPosition(stream);
-                // the time length 
-                return Bass.BASS_ChannelBytes2Seconds(stream, len);
+                //the time length 
+                return blockAlignedStream.CurrentTime.TotalSeconds;
             }
             set //Set current position, perhaps from seekbar of UI
             {
-                Bass.BASS_ChannelSetPosition(stream, value);
+                blockAlignedStream.CurrentTime = TimeSpan.FromSeconds(value);
             }
         }
 
@@ -243,7 +261,7 @@ namespace vkAudio
         private void UpdateStatus(PLAYER_STATUS status)
         {
             curStatus = status;
-            StatusChanged(curStatus,null);
+            StatusChanged(curStatus, null);
         }
 
         //System volume
@@ -251,26 +269,20 @@ namespace vkAudio
         {
             get
             {
-                return (int)(Bass.BASS_GetVolume() * 100);
+                return (int)(waveOutDevice.Volume * 100);
             }
             set
             {
-                Bass.BASS_SetVolume((float)value / 100);
+                waveOutDevice.Volume = ((float)value / 100);
+                MessageBox.Show(value.ToString());
             }
-        }
-
-        private string toUtf8(string unknown)
-        {
-            return new string(unknown.ToCharArray().
-                Select(x => ((x + 848) >= 'А' && (x + 848) <= 'ё') ? (char)(x + 848) : x).
-                ToArray());
         }
 
 
         internal void ChangeVolume(double p)
         {
-
-            Bass.BASS_ChannelSetAttribute(stream, BASSAttribute.BASS_ATTRIB_VOL, (float)p);
+            if (waveOutDevice != null)
+                waveOutDevice.Volume = (float)p;
             volumeState = (float)p;
         }
 
@@ -301,57 +313,20 @@ namespace vkAudio
             {
                 float progress;
                 // file length 
-                long len = Bass.BASS_StreamGetFilePosition(stream, BASSStreamFilePosition.BASS_FILEPOS_END);
+                long len = blockAlignedStream.Length;
                 // download progress 
-                long down = Bass.BASS_StreamGetFilePosition(stream, BASSStreamFilePosition.BASS_FILEPOS_DOWNLOAD);
-                // get channel info
-                BASS_CHANNELINFO info = Bass.BASS_ChannelGetInfo(stream);
-                // streaming in blocks? 
-                if (BASSFlag.BASS_STREAM_BLOCK != BASSFlag.BASS_DEFAULT)
-                {
-                    // percentage of buffer used
-                    progress = (down) * 100f / len;
-                    if (progress > 100)
-                        progress = 100; // restrict to 100 (can be higher)
-                }
-                else
-                {
-                    // percentage of file downloaded
-                    progress = down * 100f / len;
-                }
+                long down = blockAlignedStream.Position;
+
+                // percentage of buffer used
+                progress = (down) * 100f / len;
+                if (progress > 100)
+                    progress = 100; // restrict to 100 (can be higher)\
                 return progress;
             }
-            else
-                return 100f;
-        }
-        
 
-        private void MyDownload(IntPtr buffer, int length, IntPtr user)
-        {
-            if (_fs == null)
-            {
-                // create the file
-                _fs = File.OpenWrite(FOLDER_PATH + "\\" + currTrack.aid + ".mp3");
-            }
-            if (buffer == IntPtr.Zero)
-            {
-                // finished downloading
-                _fs.Flush();
-                _fs.Close();
-            }
-            else
-            {
-                // increase the data buffer as needed 
-                if (_data == null || _data.Length < length)
-                    _data = new byte[length];
-                // copy from managed to unmanaged memory
-                Marshal.Copy(buffer, _data, 0, length);
-                // write to file
-                _fs.Write(_data, 0, length);
-            }
+            return 100f;
         }
 
-        
         public string GetDuration(string path)
         {
             string file = path;
@@ -364,7 +339,7 @@ namespace vkAudio
                 return ((int)seconds).ToString();
             }
             else
-            return "0";
+                return "0";
         }
 
         public static double Convert100NanosecondsToMilliseconds(double nanoseconds)
@@ -380,19 +355,14 @@ namespace vkAudio
             if (b)
                 GC.SuppressFinalize(currTrack);
 
-            Bass.BASS_Free();
-            stream = 0;
+            Dispose();
         }
 
         public void Dispose()
         {
-            Bass.BASS_Free();
-            stream = 0;
+            waveOutDevice.Stop();
+            waveOutDevice.Dispose();
         }
 
-        internal int GetStream()
-        {
-            return stream;
-        }
     }
 }

@@ -72,15 +72,14 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bass.Net, Version=2.4.10.3, Culture=neutral, PublicKeyToken=b7566c273e6ef480, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Bass.Net.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack">
       <HintPath>..\..\vkAudio\vkAudio\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack.Shell">
       <HintPath>..\..\vkAudio\vkAudio\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio">
+      <HintPath>..\packages\NAudio.1.7.3\lib\net35\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -107,6 +106,7 @@
     </ApplicationDefinition>
     <Compile Include="Albums.cs" />
     <Compile Include="AlbumVK.cs" />
+    <Compile Include="AudioLocal.cs" />
     <Compile Include="Equalizer.xaml.cs">
       <DependentUpon>Equalizer.xaml</DependentUpon>
     </Compile>
@@ -133,7 +133,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Audio.cs" />
-    <Compile Include="AudioLocal.cs" />
     <Compile Include="AudioVK.cs" />
     <Compile Include="Auth.xaml.cs">
       <DependentUpon>Auth.xaml</DependentUpon>
@@ -166,6 +165,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

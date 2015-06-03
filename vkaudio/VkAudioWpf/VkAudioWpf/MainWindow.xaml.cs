@@ -887,7 +887,7 @@ namespace VkAudioWpf
             currSong = ((PlayListVk)playlist).GetCurrentTrackVK();
             bool needCache = IsNeedCache(playlist);
             player.AttachTrack((AudioVK)currSong, needCache);
-            sett.ChangeStream(player.GetStream());
+            //sett.ChangeStream(player.GetStream());
             //set status
             var audioId = ((AudioVK)currSong).owner_id + "_" + ((AudioVK)currSong).aid;
             if (sett.EnableVKBroadcast)
