@@ -69,7 +69,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Bass.Net, Version=2.4.10.3, Culture=neutral, PublicKeyToken=b7566c273e6ef480, processorArchitecture=MSIL">
@@ -185,6 +185,8 @@
     <Content Include="bass.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Bass.Net.dll" />
+    <Resource Include="Bass.Net.xml" />
     <Resource Include="images\Edit-icon.png" />
     <Resource Include="images\devices\iphone.png" />
     <Resource Include="images\devices\windows.png" />
